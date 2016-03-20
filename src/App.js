@@ -7,8 +7,11 @@ const demoConfig = {
    redis: 'redis://localhost:6379',
    redisNamespace: 'demo:mpush',
    popTimeout: 10,
+   messageExpire: 60,
+   messageCapacity: 1000,
    in: 'demo:mpush:in',
    pending: 'demo:mpush:pending',
+   done: 'demo:mpush:done',
    out: ['demo:mpush:out1', 'demo:mpush:out2']
 };
 
@@ -19,7 +22,9 @@ class App {
       this.assertString(this.config.redisNamespace, 'redisNamespace');
       this.assertString(this.config.in, 'in');
       this.assertString(this.config.in, 'pending');
-      this.assertInt(this.config.popTimeout, 'popTimeout');
+      this.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
+      this.assertIntMin(this.config.messageExpire, 'messageExpire', 0);
+      this.assertIntMin(this.config.messageCapacity, 'messageCapacity', 0);
       this.assertStringArray(this.config.out, 'out');
    }
 
@@ -34,6 +39,7 @@ class App {
       bluebird.promisifyAll(redisLib.RedisClient.prototype);
       bluebird.promisifyAll(redisLib.Multi.prototype);
       this.redisClient = redisLib.createClient(this.config.redis);
+      this.started = true;
       this.logger.info('started', await this.redisClient.timeAsync());
       this.run();
    }
@@ -55,11 +61,30 @@ class App {
       return [this.config.redisNamespace, ...values].join(':');
    }
 
+   async done() {
+      const message = await this.redisClient.rpop(this.config.done);
+
+
+   }
+
    async pop() {
       this.logger.info('brpoplpush', this.config.in, this.config.pending, this.config.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.config.in, this.config.pending, this.config.popTimeout);
-      const id = await this.redisClient.incrAsync(this.redisKey('id'));
       if (message) {
+         const [[time], id, length] = await this.multiExec(multi => {
+            multi.time();
+            multi.incr(this.redisKey('id'));
+            multi.llen(this.redisKey('ids'));
+         });
+         this.logger.info('read', {time, id, length});
+         if (this.config.messageExpire > 0 && this.config.messageCapacity > 0) {
+            await this.multiExec(multi => {
+               multi.lpush(this.redisKey('ids'), id);
+               //multi.ltrim(this.redisKey('ids'), this.config.messageCapacity);
+               //multi.hmset(this.redisKey('message', id), {message, time});
+               //multi.expire(this.redisKey('message', id), this.config.messageExpire);
+            });
+         }
          this.logger.info('lpush', message, id, this.config.out.join(' '));
          await Promise.all(this.config.out.map(async out => {
             this.logger.info('lpush', out, message);
@@ -79,6 +104,11 @@ class App {
    async loadConfig() {
       if (process.argv.length === 3) {
          if (process.argv[2] === 'demo') {
+            setTimeout(() => {
+               if (this.started) {
+                  this.redisClient.lpush(this.config.in, 'one');
+               }
+            }, 1000);
             return demoConfig;
          }
       }
@@ -87,6 +117,12 @@ class App {
    createLogger(filename) {
       const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
       return bunyan.createLogger({name});
+   }
+
+   async multiExec(fn) {
+      const multi = this.redisClient.multi();
+      fn(multi);
+      return multi.execAsync();
    }
 
    assertString(value, name) {
@@ -99,6 +135,11 @@ class App {
       assert(Number.isInteger(value), name);
    }
 
+   assertIntMin(value, name, min) {
+      assert(value, name);
+      assert(Number.isInteger(value), name);
+      assert(value >= min, name);
+   }
 
    assertStringArray(value, name) {
       this.assertArray(value, name);
