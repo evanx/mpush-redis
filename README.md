@@ -1,8 +1,6 @@
 
 # redex-mpush
 
-INCOMPLETE WORK IN PROGRESS - DO NOT USE
-
 This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, for pre-defined static subscribers, or pipelines.
 
 In practice, some "publisher" pushes a message onto a Redis list. This service pops those messages, and pushes each message onto multiple "subscriber" lists. Each subscriber pops messages from their own dedicated Redis list.
