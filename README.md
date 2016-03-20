@@ -13,11 +13,42 @@ The implementation detail is that this microservice will `brpop` from a "publish
 
 Incidently, it is advisable to provision multiple instances of a subscriber "microservice," where each instance can pop off the same subscription list. Such a system can provide resilience and scalability.
 
+
 #### Installation
 
 ```shell
 git clone https://github.com/evanx/redex-mpush
 cd redex-mpush
 npm install
+```
+
+```shell
 npm demo
+```
+
+```shell
+INFO App:
+    start { redis: 'redis://localhost:6379',
+      redisNamespace: 'demo:mpush',
+      popTimeout: 10,
+      in: 'demo:mpush:in',
+      pending: 'demo:mpush:pending',
+      out: [ 'demo:mpush:out1', 'demo:mpush:out2' ] }
+```
+
+```shell
+evans@eowyn:~/redex-mpush$ redis-cli lpush demo:mpush:in one
+(integer) 1
+```
+
+```
+INFO App: brpoplpush demo:mpush:in demo:mpush:pending 10
+INFO App: lpush one demo:mpush:out1 demo:mpush:out2
+INFO App: lpush demo:mpush:out1 one
+INFO App: lpush demo:mpush:out2 one
+```
+
+```shell
+evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out1 0 -1
+1) "one"
 ```
