@@ -44,22 +44,28 @@ class App {
          try {
             await this.pop();
          } catch (err) {
-            this.logger.warn('run', err);
+            this.logger.warn(err);
             this.ended = true;
          }
       }
       this.end();
    }
 
+   redisKey(...values) {
+      return [this.config.redisNamespace, ...values].join(':');
+   }
+
    async pop() {
       this.logger.info('brpoplpush', this.config.in, this.config.pending, this.config.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.config.in, this.config.pending, this.config.popTimeout);
+      const id = await this.redisClient.incrAsync(this.redisKey('id'));
       if (message) {
-         this.logger.info('lpush', message, this.config.out.join(' '));
+         this.logger.info('lpush', message, id, this.config.out.join(' '));
          await Promise.all(this.config.out.map(async out => {
             this.logger.info('lpush', out, message);
             await this.redisClient.lpushAsync(out, message);
          }));
+         await this.redisClient.lremAsync(this.config.pending, 1, message);
       }
    }
 

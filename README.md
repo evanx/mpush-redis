@@ -9,9 +9,11 @@ In practice, some "publisher" pushes a message onto a Redis list. This service p
 
 Clearly if a subscriber is offline, its incoming messages are "persistent" since they accumulate in Redis, and are available when the subscriber comes online again.
 
-The implementation detail is that this microservice will `brpop` from a "publishing" list, and `lpush` to multiple "subscribing" lists, as per its configuration file.
-
 Incidently, it is advisable to provision multiple instances of a subscriber "microservice," where each instance can pop off the same subscription list. Such a system can provide resilience and scalability.
+
+### Implementation
+
+This microservice will `brpoplpush` from a "publishing" list, into a "pending" list, and then `lpush` to multiple "subscribing" lists, as per its configuration file. Finally, it will remove the message from the "pending" list.
 
 
 #### Installation
