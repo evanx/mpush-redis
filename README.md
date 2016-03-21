@@ -58,10 +58,8 @@ evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out1 0 -1
 1) "one"
 ```
 
-Additionally, an optional `messageCapacity` can be configured, for tracking pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids`
+Additionally, an optional `messageCapacity` can be configured, for tracking pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids.`
 
-The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id`
+The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` The message hashes keys expire after the configured period `messageExpire` seconds.
 
-The message hashes keys expire after the configured period `messageExpire` seconds.
-
-The id of a message that has been processed should be pushed to `demo:mpush:done` by the subscriber that processes the message. Otherwise the message will timeout, e.g. see the hashes `demo:mpush:metrics:timeout`
+The id of a message that has been processed should be pushed to `demo:mpush:done` by the subscriber that processes the message. Otherwise the message will timeout, e.g. see the hashes `demo:mpush:metrics:timeout.`
