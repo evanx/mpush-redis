@@ -1,6 +1,6 @@
 
 c0flush() {
-  redis-cli keys 'demo:mpush:*' | xargs -b1 redis-cli del 
+  redis-cli keys 'demo:mpush:*' | xargs -n1 redis-cli del 
 }
 
 c0clear() {

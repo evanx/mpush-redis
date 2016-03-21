@@ -1,14 +1,20 @@
 
 # redex-mpush
 
-This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, for pre-defined static subscribers, or pipelines.
+This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, for pre-defined static subscribers.
 
-In practice, some "publisher" pushes a message onto a Redis list. This service pops those messages, and pushes each message onto multiple "subscriber" lists. Each subscriber pops messages from their own dedicated Redis list.
+This can be used for dispatching each incoming message into multiple parallel output queues.
+
+In practice, some "publisher" pushes a message onto a Redis list. This service pops those messages, and pushes each message onto multiple lists, one for each subscriber. Each subscriber pops messages from their own dedicated Redis list.
 
 Clearly if a subscriber is offline, its incoming messages are "persistent" since they accumulate in Redis, and are available when the subscriber comes online again.
 
-Incidently, it is advisable to provision multiple instances of a subscriber "microservice," where any instance can pop the next message off the same subscription list. Such a system offers resilience and scalability.
+Incidently, it is advisable to provision multiple instances of a subscription "microservice," where any instance can pop the next message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where shared state is externalized using Redis.
 
+### Related
+
+While this is a standalone utility, see my "Redex" framework for Redis-based messaging -
+<a href=https://github.com/evanx/redex>github.com/evanx/redex</a>.
 
 ### Implementation
 
@@ -56,6 +62,10 @@ where the blocking pop operation has a configured timeout of 10 seconds (but is 
 We check that the message is moved to the parallel output queues.
 ```shell
 evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out1 0 -1
+1) "one"
+```
+```shell
+evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out2 0 -1
 1) "one"
 ```
 

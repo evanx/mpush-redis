@@ -11,7 +11,7 @@ const Stats = require('./Stats');
 const demoConfig = {
    redis: 'redis://localhost:6379',
    redisNamespace: 'demo:mpush',
-   popTimeout: 10,
+   popTimeout: 60,
    messageExpire: 30,
    messageTimeout: 10,
    messageCapacity: 1000,
@@ -63,22 +63,20 @@ class App {
       this.stats = new Stats();
       this.stats.start(this);
       this.started = true;
-      this.MonitorIncoming = new MonitorIncoming();
-      this.MonitorIncoming.start(this);
-      this.monitorPending = new MonitorPending();
-      this.monitorPending.start(this);
-      this.monitorDone = new MonitorDone();
-      this.monitorDone.start(this);
+      this.components = [
+         new MonitorIncoming(),
+         new MonitorPending(),
+         new MonitorDone()
+      ];
+      await Promise.all(this.components.map(component => component.start(this)));
       this.logger.info('started', await this.redisClient.timeAsync());
    }
 
    async end() {
       this.logger.info('end');
+      await Promise.all(this.components.map(component => component.end(this)));
       if (this.redisClient) {
          this.redisClient.quit();
-      }
-      if (this.monitor) {
-         this.monitor.end();
       }
    }
 
