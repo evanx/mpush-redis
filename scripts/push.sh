@@ -1,12 +1,10 @@
 
-set -u
+c0flush() {
+  redis-cli keys 'demo:mpush:*' | xargs -b1 redis-cli del 
+}
 
 c0clear() {
-  for key in `redis-cli keys 'demo:mpush:*'`
-  do
-    echo "del $key" `redis-cli del $key`
-  done
-  for list in in pending ids out1 out2
+  for list in in pending out1 out2
   do
     key="demo:mpush:$list"
     echo "del $key" `redis-cli del $key`
@@ -15,29 +13,23 @@ c0clear() {
 
 c0state() {
   echo
-  redis-cli keys 'demo:*' | sort
-  echo "lrange demo:mpush:pending:ids 0 -1"
-  redis-cli lrange demo:mpush:ids 0 -1 | grep '^[0-9]'
-  echo 'hgetall demo:mpush:metrics:done'
-  redis-cli hgetall demo:mpush:metrics:done
-  echo 'hgetall demo:mpush:metrics:timeout'
-  redis-cli hgetall demo:mpush:metrics:timeout
+  redis-cli keys 'demo:mpush*' | sort | grep message | tail 
+  redis-cli keys 'demo:mpush*' | sort | grep -v message
+  echo "lrange demo:mpush:ids 0 -1"
+  echo `redis-cli lrange demo:mpush:ids 0 -1`
   id=`redis-cli lpop demo:mpush:ids`
-  if echo "$id" | grep -q '^[0-9][0-9]*$'
+  if echo "$id" | grep -q '^[0-9]'
   then
-    echo "hgetall demo:mpush:message:$id"
+    echo redis-cli hgetall demo:mpush:message:$id
     redis-cli hgetall demo:mpush:message:$id
   fi
-  for list in in pending ids out1 out2
+  for list in in pending done out1 out2
   do
     key="demo:mpush:$list"
-    llen=`redis-cli llen $key`
-    echo "llen $key $llen"
-    if [ "$llen" != '0' ]
-    then
-      echo `redis-cli lrange $key 0 -1`
-    fi
+    echo "llen $key" `redis-cli llen $key`
   done
+  echo out1 `redis-cli lrange demo:mpush:out1 0 -1`
+  echo out2 `redis-cli lrange demo:mpush:out2 0 -1`
 }
 
 c0default() {
@@ -46,6 +38,8 @@ c0default() {
   sleep 1
   id=`redis-cli lpop demo:mpush:ids`
   redis-cli lpush 'demo:mpush:done' $id
+  echo out1 `redis-cli lrange demo:mpush:out1 0 -1`
+  echo out2 `redis-cli lrange demo:mpush:out2 0 -1`
 }
 
 command=default
@@ -54,7 +48,5 @@ then
   command=$1
   shift
 fi
-c$#$command $@
-
-
+c$#$command $0
 

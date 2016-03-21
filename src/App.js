@@ -3,7 +3,10 @@ const bluebird = require('bluebird');
 const redisLib = require('redis');
 const bunyan = require('bunyan');
 
-const Monitor = require('./Monitor');
+const MonitorIncoming = require('./MonitorIncoming');
+const MonitorPending = require('./MonitorPending');
+const MonitorDone = require('./MonitorDone');
+const Stats = require('./Stats');
 
 const demoConfig = {
    redis: 'redis://localhost:6379',
@@ -47,7 +50,7 @@ class App {
    }
 
    async start() {
-      this.loggerLevel = process.env.loggerLevel || 'debug';
+      this.loggerLevel = process.env.loggerLevel || 'info';
       this.logger = this.createLogger(module.filename);
       this.ended = false;
       this.config = await this.loadConfig();
@@ -57,11 +60,16 @@ class App {
       this.logger.info('start', this.config);
       this.assertConfig();
       this.redisClient = this.createRedisClient();
+      this.stats = new Stats();
+      this.stats.start(this);
       this.started = true;
+      this.MonitorIncoming = new MonitorIncoming();
+      this.MonitorIncoming.start(this);
+      this.monitorPending = new MonitorPending();
+      this.monitorPending.start(this);
+      this.monitorDone = new MonitorDone();
+      this.monitorDone.start(this);
       this.logger.info('started', await this.redisClient.timeAsync());
-      this.monitor = new Monitor();
-      this.monitor.start(this);
-      this.run();
    }
 
    async end() {
@@ -74,56 +82,17 @@ class App {
       }
    }
 
+   createLogger(filename) {
+      const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
+      return bunyan.createLogger({name: name, level: this.loggerLevel});
+   }
+
    createRedisClient() {
       return redisLib.createClient(this.config.redis);
    }
 
-   async run() {
-      this.logger.info('run');
-      while (!this.ended) {
-         try {
-            await this.pop();
-         } catch (err) {
-            this.logger.warn(err);
-            this.ended = true;
-         }
-      }
-      this.end();
-   }
-
    redisKey(...values) {
       return [this.config.redisNamespace, ...values].join(':');
-   }
-
-   async pop() {
-      if (this.ended) {
-         this.logger.warn('ended');
-         return null;
-      }
-      this.logger.info('brpoplpush', this.config.in, this.config.pending, this.config.popTimeout);
-      const message = await this.redisClient.brpoplpushAsync(this.config.in, this.config.pending, this.config.popTimeout);
-      if (message) {
-         const [[timestamp], id, length] = await this.redisClient.multiExecAsync(multi => {
-            multi.time();
-            multi.incr(this.redisKey('id'));
-            multi.llen(this.redisKey('ids'));
-         });
-         this.logger.info('read', {timestamp, id, length});
-         const multiResults = await this.redisClient.multiExecAsync(multi => {
-            if (this.config.messageExpire > 0 && this.config.messageCapacity > 0 && length < this.config.messageCapacity) {
-               multi.lpush(this.redisKey('ids'), id);
-               multi.hmset(this.redisKey('message', id), {timestamp});
-               multi.expire(this.redisKey('message', id), this.config.messageExpire);
-            } else {
-            }
-            this.config.out.forEach(out => {
-               this.logger.info('lpush', out, message);
-               multi.lpush(out, message);
-            });
-            multi.lrem(this.config.pending, -1, message);
-         });
-         this.logger.debug('multiResults', multiResults);
-      }
    }
 
    async loadConfig() {
@@ -132,8 +101,15 @@ class App {
             setTimeout(() => {
                if (this.started) {
                   this.redisClient.lpush(this.config.in, 'one');
+                  this.redisClient.lpush(this.config.in, 'two');
+                  this.redisClient.lpush(this.config.in, 'three');
                }
             }, 1000);
+            setTimeout(() => {
+               if (this.started) {
+                  this.redisClient.lpush(this.config.done, 'three');
+               }
+            }, 2000);
             return demoConfig;
          }
       }
@@ -145,11 +121,6 @@ class App {
             resolve();
          }, millis);
       });
-   }
-
-   createLogger(filename) {
-      const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
-      return bunyan.createLogger({name: name, level: this.loggerLevel});
    }
 
    assertString(value, name) {

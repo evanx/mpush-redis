@@ -1,5 +1,5 @@
 
-class Monitor {
+class MonitorPending {
 
    constructor() {
    }
@@ -24,42 +24,12 @@ class Monitor {
       this.logger.info('run');
       while (!this.ended) {
          try {
-            await this.popDone();
             await this.peekPending();
             await this.app.delay(1000);
          } catch (err) {
             this.logger.warn(err);
             await this.app.delay(9000);
          }
-      }
-   }
-
-   async popDone() {
-      if (this.ended) {
-         this.logger.warn('popDone ended');
-         return null;
-      }
-      const [[timestamp], id, length] = await this.redisClient.multiExecAsync(multi => {
-         multi.time();
-         multi.rpop(app.config.done);
-         multi.llen(app.config.done);
-      });
-      this.logger.debug('rpop', app.config.done, timestamp, id, length);
-      if (id) {
-         const meta = await this.redisClient.hgetallAsync(app.redisKey('message', id));
-         if (!meta) {
-            return this.popDone();
-         }
-         let duration;
-         if (meta.timestamp) {
-            duration = timestamp - meta.timestamp;
-            this.peak('done', duration, id);
-         }
-         const multiResults = await this.redisClient.multiExecAsync(multi => {
-            multi.del(app.redisKey('messtime', id));
-            multi.lrem(app.redisKey('ids'), -1, id);
-         });
-         this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
       }
    }
 
@@ -79,7 +49,7 @@ class Monitor {
          if (length < this.app.config.messageCapacity*2/3) {
             const meta = await this.redisClient.hgetallAsync(app.redisKey('message', id));
             if (!meta) {
-               this.counter('expired', id);
+               this.app.stats.count('expired', id);
                await this.redisClient.lremAsync(listKey, -1, id);
                return this.peekPending();
             }
@@ -90,7 +60,7 @@ class Monitor {
                   this.logger.debug('fresh', {id, timestamp});
                   return;
                }
-               this.peak('timeout', duration, id);
+               this.app.stats.peak('timeout', duration, id);
             }
             const multiResults = await this.redisClient.multiExecAsync(multi => {
                multi.del(app.redisKey('message', id));
@@ -101,27 +71,7 @@ class Monitor {
       }
    }
 
-   async count(name, ...args) {
-      const hashesKey = this.app.redisKey('metrics', name);
-      this.logger.debug('counter', name, args);
-      this.redisClient.multiExecAsync(multi => {
-         multi.hincrby(hashesKey, 'count', 1);
-      });
-   }
-
-   async peak(name, value, ...args) {
-      const hashesKey = this.app.redisKey('metrics', name);
-      const peak = await this.app.redisClient.hgetAsync(hashesKey, 'peak');
-      this.logger.debug('peak', name, value, args);
-      this.redisClient.multiExecAsync(multi => {
-         multi.hincrby(hashesKey, 'count', 1);
-         multi.hincrby(hashesKey, 'total', value);
-         if (!peak || value > peak) {
-            multi.hset(hashesKey, 'peak', value);
-         }
-      });
-   }
 
 }
 
-module.exports = Monitor;
+module.exports = MonitorPending;
