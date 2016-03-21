@@ -1,5 +1,5 @@
 
-class MonitorPending {
+export default class MonitorPending {
 
    constructor() {
    }
@@ -70,8 +70,4 @@ class MonitorPending {
          }
       }
    }
-
-
 }
-
-module.exports = MonitorPending;

@@ -1,5 +1,5 @@
 
-class MonitorIncoming {
+export default class MonitorIncoming {
 
    constructor() {
    }
@@ -76,5 +76,3 @@ class MonitorIncoming {
       }
    }
 }
-
-module.exports = MonitorIncoming;

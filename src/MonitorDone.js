@@ -1,5 +1,5 @@
 
-class MonitorDone {
+export default class MonitorDone {
 
    constructor() {
    }
@@ -62,5 +62,3 @@ class MonitorDone {
       }
    }
 }
-
-module.exports = MonitorDone;

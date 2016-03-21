@@ -5,9 +5,9 @@ var bunyan = require('bunyan');
 var logger = bunyan.createLogger({name: 'entry', level: 'debug'});
 require("babel-polyfill");
 require('babel-core/register');
-logger.debug('babel');
-var App = require('./src/App');
-logger.debug('App');
+//logger.debug('babel');
+var App = require('./src/App').default;
+//logger.debug('App', typeof App, Object.keys(App));
 global.app = new App();
 global.app.start().then(function() {
    logger.info('started');

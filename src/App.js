@@ -1,25 +1,13 @@
 
-const bluebird = require('bluebird');
-const redisLib = require('redis');
-const bunyan = require('bunyan');
+import bluebird from 'bluebird';
+import redisLib from 'redis';
+import bunyan from 'bunyan';
 
-const MonitorIncoming = require('./MonitorIncoming');
-const MonitorPending = require('./MonitorPending');
-const MonitorDone = require('./MonitorDone');
-const Stats = require('./Stats');
-
-const demoConfig = {
-   redis: 'redis://localhost:6379',
-   redisNamespace: 'demo:mpush',
-   popTimeout: 60,
-   messageExpire: 30,
-   messageTimeout: 10,
-   messageCapacity: 1000,
-   in: 'demo:mpush:in',
-   pending: 'demo:mpush:pending',
-   done: 'demo:mpush:done',
-   out: ['demo:mpush:out1', 'demo:mpush:out2']
-};
+import MonitorIncoming from './MonitorIncoming';
+import MonitorPending from './MonitorPending';
+import MonitorDone from './MonitorDone';
+import Stats from './Stats';
+import Demo from '../demo/Demo';
 
 function initRedis() {
    bluebird.promisifyAll(redisLib.RedisClient.prototype);
@@ -33,7 +21,7 @@ function initRedis() {
 
 initRedis();
 
-class App {
+export default class App {
 
    assertConfig() {
       this.assertString(this.config.redis, 'redis');
@@ -69,14 +57,20 @@ class App {
          new MonitorDone()
       ];
       await Promise.all(this.components.map(component => component.start(this)));
+      if (this.starter) {
+         await this.starter.start(this);
+      }
       this.logger.info('started', await this.redisClient.timeAsync());
    }
 
    async end() {
       this.logger.info('end');
-      await Promise.all(this.components.map(component => component.end(this)));
+      await Promise.all(this.components.map(component => component.end()));
       if (this.redisClient) {
          this.redisClient.quit();
+      }
+      if (this.starter) {
+         this.starter.end();
       }
    }
 
@@ -93,22 +87,15 @@ class App {
       return [this.config.redisNamespace, ...values].join(':');
    }
 
+   setConfig(config) {
+
+   }
+
    async loadConfig() {
       if (process.argv.length === 3) {
          if (process.argv[2] === 'demo') {
-            setTimeout(() => {
-               if (this.started) {
-                  this.redisClient.lpush(this.config.in, 'one');
-                  this.redisClient.lpush(this.config.in, 'two');
-                  this.redisClient.lpush(this.config.in, 'three');
-               }
-            }, 1000);
-            setTimeout(() => {
-               if (this.started) {
-                  this.redisClient.lpush(this.config.done, 'three');
-               }
-            }, 2000);
-            return demoConfig;
+            this.starter = new Demo();
+            return await this.starter.loadConfig();
          }
       }
    }
@@ -150,5 +137,3 @@ class App {
       assert(!lodash.isEmpty(value), 'empty: ' + name);
    }
 }
-
-module.exports = App;

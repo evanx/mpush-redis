@@ -1,5 +1,5 @@
 
-class Stats {
+export default class Stats {
 
    constructor() {
    }
@@ -40,5 +40,3 @@ class Stats {
       });
    }
 }
-
-module.exports = Stats;
