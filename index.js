@@ -2,7 +2,7 @@
 global.assert = require('assert');
 global.lodash = require('lodash');
 var bunyan = require('bunyan');
-var logger = bunyan.createLogger({name: 'index', level: 'debug'});
+var logger = bunyan.createLogger({name: 'entry', level: 'debug'});
 require("babel-polyfill");
 require('babel-core/register');
 logger.debug('babel');

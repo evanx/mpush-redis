@@ -3,11 +3,14 @@ const bluebird = require('bluebird');
 const redisLib = require('redis');
 const bunyan = require('bunyan');
 
+const Monitor = require('./Monitor');
+
 const demoConfig = {
    redis: 'redis://localhost:6379',
    redisNamespace: 'demo:mpush',
    popTimeout: 10,
-   messageExpire: 60,
+   messageExpire: 30,
+   messageTimeout: 10,
    messageCapacity: 1000,
    in: 'demo:mpush:in',
    pending: 'demo:mpush:pending',
@@ -15,33 +18,64 @@ const demoConfig = {
    out: ['demo:mpush:out1', 'demo:mpush:out2']
 };
 
+function initRedis() {
+   bluebird.promisifyAll(redisLib.RedisClient.prototype);
+   bluebird.promisifyAll(redisLib.Multi.prototype);
+   redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
+      const multi = this.multi();
+      fn(multi);
+      return multi.execAsync();
+   };
+}
+
+initRedis();
+
 class App {
 
    assertConfig() {
       this.assertString(this.config.redis, 'redis');
       this.assertString(this.config.redisNamespace, 'redisNamespace');
       this.assertString(this.config.in, 'in');
-      this.assertString(this.config.in, 'pending');
+      this.assertString(this.config.pending, 'pending');
       this.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
-      this.assertIntMin(this.config.messageExpire, 'messageExpire', 0);
       this.assertIntMin(this.config.messageCapacity, 'messageCapacity', 0);
+      if (this.config.messageCapacity > 0) {
+         this.assertIntMin(this.config.messageTimeout, 'messageTimeout', 0);
+         this.assertIntMin(this.config.messageExpire, 'messageExpire', this.config.messageTimeout);
+      }
       this.assertStringArray(this.config.out, 'out');
    }
 
    async start() {
+      this.loggerLevel = process.env.loggerLevel || 'debug';
       this.logger = this.createLogger(module.filename);
+      this.ended = false;
       this.config = await this.loadConfig();
       if (!this.config) {
          throw 'Not configured';
       }
       this.logger.info('start', this.config);
       this.assertConfig();
-      bluebird.promisifyAll(redisLib.RedisClient.prototype);
-      bluebird.promisifyAll(redisLib.Multi.prototype);
-      this.redisClient = redisLib.createClient(this.config.redis);
+      this.redisClient = this.createRedisClient();
       this.started = true;
       this.logger.info('started', await this.redisClient.timeAsync());
+      this.monitor = new Monitor();
+      this.monitor.start(this);
       this.run();
+   }
+
+   async end() {
+      this.logger.info('end');
+      if (this.redisClient) {
+         this.redisClient.quit();
+      }
+      if (this.monitor) {
+         this.monitor.end();
+      }
+   }
+
+   createRedisClient() {
+      return redisLib.createClient(this.config.redis);
    }
 
    async run() {
@@ -61,43 +95,34 @@ class App {
       return [this.config.redisNamespace, ...values].join(':');
    }
 
-   async done() {
-      const message = await this.redisClient.rpop(this.config.done);
-
-
-   }
-
    async pop() {
+      if (this.ended) {
+         this.logger.warn('ended');
+         return null;
+      }
       this.logger.info('brpoplpush', this.config.in, this.config.pending, this.config.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.config.in, this.config.pending, this.config.popTimeout);
       if (message) {
-         const [[time], id, length] = await this.multiExec(multi => {
+         const [[timestamp], id, length] = await this.redisClient.multiExecAsync(multi => {
             multi.time();
             multi.incr(this.redisKey('id'));
             multi.llen(this.redisKey('ids'));
          });
-         this.logger.info('read', {time, id, length});
-         if (this.config.messageExpire > 0 && this.config.messageCapacity > 0) {
-            await this.multiExec(multi => {
+         this.logger.info('read', {timestamp, id, length});
+         const multiResults = await this.redisClient.multiExecAsync(multi => {
+            if (this.config.messageExpire > 0 && this.config.messageCapacity > 0 && length < this.config.messageCapacity) {
                multi.lpush(this.redisKey('ids'), id);
-               //multi.ltrim(this.redisKey('ids'), this.config.messageCapacity);
-               //multi.hmset(this.redisKey('message', id), {message, time});
-               //multi.expire(this.redisKey('message', id), this.config.messageExpire);
+               multi.hmset(this.redisKey('message', id), {timestamp});
+               multi.expire(this.redisKey('message', id), this.config.messageExpire);
+            } else {
+            }
+            this.config.out.forEach(out => {
+               this.logger.info('lpush', out, message);
+               multi.lpush(out, message);
             });
-         }
-         this.logger.info('lpush', message, id, this.config.out.join(' '));
-         await Promise.all(this.config.out.map(async out => {
-            this.logger.info('lpush', out, message);
-            await this.redisClient.lpushAsync(out, message);
-         }));
-         await this.redisClient.lremAsync(this.config.pending, 1, message);
-      }
-   }
-
-   async end() {
-      this.logger.info('end');
-      if (this.redisClient) {
-         this.redisClient.quit();
+            multi.lrem(this.config.pending, -1, message);
+         });
+         this.logger.debug('multiResults', multiResults);
       }
    }
 
@@ -114,15 +139,17 @@ class App {
       }
    }
 
-   createLogger(filename) {
-      const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
-      return bunyan.createLogger({name});
+   delay(millis) {
+      return new Promise((resolve, reject) => {
+         setTimeout(() => {
+            resolve();
+         }, millis);
+      });
    }
 
-   async multiExec(fn) {
-      const multi = this.redisClient.multi();
-      fn(multi);
-      return multi.execAsync();
+   createLogger(filename) {
+      const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
+      return bunyan.createLogger({name: name, level: this.loggerLevel});
    }
 
    assertString(value, name) {
@@ -153,7 +180,6 @@ class App {
       assert(lodash.isArray(value), 'not array: ' + name);
       assert(!lodash.isEmpty(value), 'empty: ' + name);
    }
-
 }
 
 module.exports = App;
