@@ -9,7 +9,7 @@ In practice, some "publisher" pushes a message onto a Redis list. This service p
 
 Clearly if a subscriber is offline, its incoming messages are "persistent" since they accumulate in Redis, and are available when the subscriber comes online again.
 
-Incidently, it is advisable to provision multiple instances of a subscription "microservice," where any instance can pop the next message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where shared state is externalized using Redis.
+Incidently, it is posible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where state is externalized (and shared) using Redis.
 
 ### Related
 
