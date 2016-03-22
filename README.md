@@ -11,6 +11,12 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 
 Incidently, it is posible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where state is externalized (and shared) using Redis.
 
+
+### TODO
+
+The Redis connection of the input/pending and output queues should be configurable, defaulted to the Redis instance used for the service e.g. to track timeouts.
+
+
 ### Related
 
 While this is a standalone utility, see my "Redex" framework for Redis-based messaging -
