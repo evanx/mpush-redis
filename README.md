@@ -1,5 +1,5 @@
 
-# redex-mpush
+# mpush-redis
 
 This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, for pre-defined static subscribers.
 
@@ -15,7 +15,7 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 ### Related
 
 While this is a standalone utility, see my "Redex" framework for Redis-based messaging -
-<a href=https://github.com/evanx/redex>github.com/evanx/redex</a>.
+<a href="https://github.com/evanx/redex">github.com/evanx/redex</a>.
 
 ### Implementation
 
