@@ -1,9 +1,9 @@
 
 # mpush-redis
 
-This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, for pre-defined static subscribers.
+This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, e.g. to support parallel task queues.
 
-This can be used for dispatching each incoming message into multiple parallel output work queues.
+It is built for NodeJS, using the Babel transpiler to support async/await.
 
 In practice, some "publisher" pushes a message onto a Redis list. This service pops those messages, and pushes each message onto multiple lists, one for each subscriber. Each subscriber pops messages from their own dedicated Redis list.
 
@@ -71,6 +71,8 @@ evans@eowyn:~/mpush-redis$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
 1) "one"
 ```
 
+### Advanced/experimental usage
+
 Additionally, an optional `messageCapacity` can be configured, for tracking pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids`.
 
 However, if a message is itself a number, then that is used for the `id.` For example, the publisher might increment `demo:mpush:id,` create the `demo:mpush:message:$id` hashes with `request` content, and push the `id` into `:in`. The subscriber might set the `response` on these hashes, for response processing.
@@ -78,3 +80,24 @@ However, if a message is itself a number, then that is used for the `id.` For ex
 The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` The message hashes expire from Redis after the configured period `messageExpire` (seconds).
 
 The id of a message that has been processed should be pushed to `demo:mpush:done` by the subscriber that processes the message. Otherwise the message will timeout automatically, e.g. see the hashes `demo:mpush:metrics:timeout`.
+
+### Configuration
+
+Specify the configuration file-name as a command-line parameter.
+
+```
+evans@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
+[2016-03-24T11:53:28.380Z]  INFO: App/7673 on eowyn:
+    start { redis: 'redis://localhost:6379/0',
+      redisNamespace: 'mpush',
+      popTimeout: 60,
+      messageExpire: 30,
+      messageTimeout: 10,
+      messageCapacity: 1000,
+      in: 'mpush:in',
+      pending: 'mpush:pending',
+      done: 'mpush:done',
+      out: [ 'mpush:out0', 'mpush:out1' ]
+```
+
+The specified config file is loaded via `require()`
