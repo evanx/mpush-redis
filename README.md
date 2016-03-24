@@ -24,8 +24,8 @@ This microservice will `brpoplpush` from a "publishing" list, into a "pending" l
 #### Installation
 
 ```shell
-git clone https://github.com/evanx/redex-mpush
-cd redex-mpush
+git clone https://github.com/evanx/mpush-redis
+cd mpush-redis
 npm install
 ```
 Let's run the demo.
@@ -48,7 +48,7 @@ where the `out1` queue is configured as `redis://localhost:6379/1` i.e. on a dif
 We push an incoming message into `:in`
 
 ```shell
-evans@eowyn:~/redex-mpush$ redis-cli lpush demo:mpush:in one
+evans@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
 (integer) 1
 ```
 
@@ -63,11 +63,11 @@ where the blocking pop operation has a configured timeout of 10 seconds (but is 
 
 We check that the message is moved to the parallel output queues.
 ```shell
-evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out0 0 -1
+evans@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
 1) "one"
 ```
 ```shell
-evans@eowyn:~/redex-mpush$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
+evans@eowyn:~/mpush-redis$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
 1) "one"
 ```
 
