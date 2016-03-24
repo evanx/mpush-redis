@@ -37,7 +37,12 @@ c0default() {
   redis-cli lpush 'demo:mpush:in' two
   sleep 1
   id=`redis-cli lpop demo:mpush:ids`
-  redis-cli lpush 'demo:mpush:done' $id
+  if [ -z "$id" ]
+  then
+    echo "empty id"
+  else
+    redis-cli lpush 'demo:mpush:done' $id
+  fi
   echo out1 `redis-cli lrange demo:mpush:out1 0 -1`
   echo out2 `redis-cli lrange demo:mpush:out2 0 -1`
 }

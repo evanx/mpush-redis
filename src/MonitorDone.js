@@ -14,10 +14,12 @@ export default class MonitorDone {
    }
 
    async end() {
-      this.logger.info('end');
-      this.ended = true;
-      if (this.redisClient) {
-         this.redisClient.quit();
+      if (this.started) {
+         this.logger.info('end');
+         this.ended = true;
+         if (this.redisClient) {
+            this.redisClient.quit();
+         }
       }
    }
 

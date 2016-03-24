@@ -47,8 +47,14 @@ export default class App {
       if (!this.config) {
          throw new Error('Not configured');
       }
-      this.logger.info('start', this.config);
       this.assertConfig();
+      this.outRedis = {};
+      this.config.out = this.config.out.map(out => {
+         const {key, redis} = this.parseRedisKey(out);
+         this.outRedis[key] = this.createRedisClient(redis);
+         return key;
+      });
+      this.logger.info('start', this.config, Object.keys(this.outRedis));
       this.redisClient = this.createRedisClient();
       this.stats = new Stats();
       this.stats.start(this);
@@ -83,16 +89,38 @@ export default class App {
       return bunyan.createLogger({name: name, level: this.loggerLevel});
    }
 
-   createRedisClient() {
-      return redisLib.createClient(this.config.redis);
+   parseRedisKey(name) {
+      const redis = this.config.redis;
+      const key = name;
+      const index = name.lastIndexOf('/');
+      if (index > 0) {
+         const match = name.match(/^redis:\/\/(\w+):([0-9]+)\/([0-9]+)\/([\w:]+)$/);
+         if (!match) {
+            throw new Error({name});
+         }
+         const redis = name.substring(0, index);
+         const key = name.substring(index + 1);
+         this.logger.info('parseRedisKey', match, redis, key);
+      }
+      return {redis, key};
+   }
+
+   createRedisClient(props) {
+      let redis;
+      if (!props) {
+         redis = this.config.redis;
+      } else if (typeof props == 'string') {
+         redis = props;
+      } else if (props.redis) {
+         redis = props.redis;
+      } else {
+         throw new Error({props});
+      }
+      return redisLib.createClient(redis);
    }
 
    redisKey(...values) {
       return [this.config.redisNamespace, ...values].join(':');
-   }
-
-   setConfig(config) {
-
    }
 
    async loadConfig() {
