@@ -77,7 +77,7 @@ export default class MonitorIncoming {
          }
       }
       this.app.config.out.forEach(out => {
-         this.logger.info('lpush', out, message);
+         this.logger.info('lpush', this.app.outProps[out], message);
          this.app.outRedis[out].lpush(out, message);
       });
       const multiResults = await this.redisClient.multiExecAsync(multi => {

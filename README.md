@@ -12,11 +12,6 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 Incidently, it is possible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where state is externalized (and shared) using Redis.
 
 
-### TODO
-
-The Redis connection of the input/pending and output queues should be configurable, defaulted to the Redis instance used for the service e.g. to track timeouts.
-
-
 ### Related
 
 While this is a standalone utility, see my "Redex" framework for Redis-based messaging -
@@ -40,14 +35,15 @@ npm run demo
 We see the demo configuration in the logs.
 ```shell
 INFO App: config {
-      redis: 'redis://localhost:6379',
+      redis: 'redis://localhost:6379/0',
       redisNamespace: 'demo:mpush',
       in: 'demo:mpush:in',
       pending: 'demo:mpush:pending',
+      done: 'demo:mpush:done',
       popTimeout: 10,
-      out: [ 'demo:mpush:out1', 'demo:mpush:out2' ],
-      done: 'demo:mpush:done'
+      out: [ 'demo:mpush:out0', 'redis://localhost:6379/1/demo:mpush:out1' ]
 ```
+where the `out1` queue is configured as `redis://localhost:6379/1` i.e. on a different Redis database (number 1).
 
 We push an incoming message into `:in`
 
@@ -60,18 +56,18 @@ From the logs, we see that the service performs the following Redis commands.
 
 ```
 INFO App: brpoplpush demo:mpush:in demo:mpush:pending 10
-INFO App: lpush demo:mpush:out1 one
-INFO App: lpush demo:mpush:out2 one
+INFO App: lpush redis://localhost:6379/0 demo:mpush:out0 one
+INFO App: lpush redis://localhost:6379/1 demo:mpush:out1 one
 ```
 where the blocking pop operation has a configured timeout of 10 seconds (but is repeated in a infinite loop. When the pop yields a message, this is pushed into the parallel output queues.
 
 We check that the message is moved to the parallel output queues.
 ```shell
-evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out1 0 -1
+evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out0 0 -1
 1) "one"
 ```
 ```shell
-evans@eowyn:~/redex-mpush$ redis-cli lrange demo:mpush:out2 0 -1
+evans@eowyn:~/redex-mpush$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
 1) "one"
 ```
 

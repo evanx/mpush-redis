@@ -49,9 +49,11 @@ export default class App {
       }
       this.assertConfig();
       this.outRedis = {};
+      this.outProps = {};
       this.config.out = this.config.out.map(out => {
          const {key, redis} = this.parseRedisKey(out);
          this.outRedis[key] = this.createRedisClient(redis);
+         this.outProps[key] = redis;
          return key;
       });
       this.logger.info('start', this.config, Object.keys(this.outRedis));
@@ -90,17 +92,14 @@ export default class App {
    }
 
    parseRedisKey(name) {
-      const redis = this.config.redis;
-      const key = name;
+      let  redis = this.config.redis;
+      let key = name;
       const index = name.lastIndexOf('/');
       if (index > 0) {
-         const match = name.match(/^redis:\/\/(\w+):([0-9]+)\/([0-9]+)\/([\w:]+)$/);
-         if (!match) {
-            throw new Error({name});
-         }
-         const redis = name.substring(0, index);
-         const key = name.substring(index + 1);
-         this.logger.info('parseRedisKey', match, redis, key);
+         assert(name.match(/^redis:\/\/(\w+):([0-9]+)\/([0-9]+)\/([\w:]+)$/), 'redis: ' + name);
+         redis = name.substring(0, index);
+         key = name.substring(index + 1);
+         this.logger.info('parseRedisKey', redis, key);
       }
       return {redis, key};
    }

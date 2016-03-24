@@ -1,6 +1,6 @@
 
 module.exports = {
-   redis: 'redis://localhost:6379',
+   redis: 'redis://localhost:6379/0',
    redisNamespace: 'demo:mpush',
    popTimeout: 60,
    messageExpire: 30,
@@ -9,5 +9,5 @@ module.exports = {
    in: 'demo:mpush:in',
    pending: 'demo:mpush:pending',
    done: 'demo:mpush:done',
-   out: ['demo:mpush:out1', 'demo:mpush:out2']
+   out: ['demo:mpush:out0', 'redis://localhost:6379/1/demo:mpush:out1']
 };
