@@ -1,8 +1,10 @@
 
 import bluebird from 'bluebird';
-import redisLib from 'redis';
 import bunyan from 'bunyan';
+import fs from 'fs';
+import redisLib from 'redis';
 
+import Asserts from './Asserts';
 import MonitorIncoming from './MonitorIncoming';
 import MonitorPending from './MonitorPending';
 import MonitorDone from './MonitorDone';
@@ -24,17 +26,17 @@ initRedis();
 export default class App {
 
    assertConfig() {
-      this.assertString(this.config.redis, 'redis');
-      this.assertString(this.config.redisNamespace, 'redisNamespace');
-      this.assertString(this.config.in, 'in');
-      this.assertString(this.config.pending, 'pending');
-      this.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
-      this.assertIntMin(this.config.messageCapacity, 'messageCapacity', 0);
+      Asserts.assertString(this.config.redis, 'redis');
+      Asserts.assertString(this.config.redisNamespace, 'redisNamespace');
+      Asserts.assertString(this.config.in, 'in');
+      Asserts.assertString(this.config.pending, 'pending');
+      Asserts.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
+      Asserts.assertIntMin(this.config.messageCapacity, 'messageCapacity', 0);
       if (this.config.messageCapacity > 0) {
-         this.assertIntMin(this.config.messageTimeout, 'messageTimeout', 0);
-         this.assertIntMin(this.config.messageExpire, 'messageExpire', this.config.messageTimeout);
+         Asserts.assertIntMin(this.config.messageTimeout, 'messageTimeout', 0);
+         Asserts.assertIntMin(this.config.messageExpire, 'messageExpire', this.config.messageTimeout);
       }
-      this.assertStringArray(this.config.out, 'out');
+      Asserts.assertStringArray(this.config.out, 'out');
    }
 
    async start() {
@@ -43,7 +45,7 @@ export default class App {
       this.ended = false;
       this.config = await this.loadConfig();
       if (!this.config) {
-         throw 'Not configured';
+         throw new Error('Not configured');
       }
       this.logger.info('start', this.config);
       this.assertConfig();
@@ -65,12 +67,14 @@ export default class App {
 
    async end() {
       this.logger.info('end');
-      await Promise.all(this.components.map(component => component.end()));
-      if (this.redisClient) {
-         this.redisClient.quit();
-      }
       if (this.starter) {
          this.starter.end();
+      }
+      if (this.components) {
+         await Promise.all(this.components.map(component => component.end()));
+      }
+      if (this.redisClient) {
+         this.redisClient.quit();
       }
    }
 
@@ -93,9 +97,14 @@ export default class App {
 
    async loadConfig() {
       if (process.argv.length === 3) {
-         if (process.argv[2] === 'demo') {
+         const arg = process.argv[2];
+         if (arg === 'demo') {
             this.starter = new Demo();
             return await this.starter.loadConfig();
+         } else if (/\.js$/.test(arg)) {
+            if (fs.existsSync(arg)) {
+               return require(arg);
+            }
          }
       }
    }
@@ -108,32 +117,4 @@ export default class App {
       });
    }
 
-   assertString(value, name) {
-      assert(value, name);
-      assert(typeof value === 'string', name);
-   }
-
-   assertInt(value, name) {
-      assert(value, name);
-      assert(Number.isInteger(value), name);
-   }
-
-   assertIntMin(value, name, min) {
-      assert(value, name);
-      assert(Number.isInteger(value), name);
-      assert(value >= min, name);
-   }
-
-   assertStringArray(value, name) {
-      this.assertArray(value, name);
-      value.forEach(item => {
-         this.assertString(item, name);
-      });
-   }
-
-   assertArray(value, name) {
-      assert(value, name);
-      assert(lodash.isArray(value), 'not array: ' + name);
-      assert(!lodash.isEmpty(value), 'empty: ' + name);
-   }
 }

@@ -5,6 +5,7 @@ export default class Stats {
    }
 
    async start(app) {
+      this.started = true;
       this.app = app;
       this.logger = app.createLogger(module.filename);
       this.redisClient = app.createRedisClient();
@@ -12,10 +13,12 @@ export default class Stats {
    }
 
    async end() {
-      this.logger.info('end');
-      this.ended = true;
-      if (this.redisClient) {
-         this.redisClient.quit();
+      if (this.started) {
+         this.logger.info('end');
+         this.ended = true;
+         if (this.redisClient) {
+            this.redisClient.quit();
+         }
       }
    }
 

@@ -1,5 +1,5 @@
 {
-  "name": "redex-mpush",
+  "name": "mpush-redis",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
