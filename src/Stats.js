@@ -5,7 +5,6 @@ export default class Stats {
    }
 
    async start(app) {
-      this.started = true;
       this.app = app;
       this.logger = app.createLogger(module.filename);
       this.redisClient = app.createRedisClient();
@@ -13,12 +12,10 @@ export default class Stats {
    }
 
    async end() {
-      if (this.started) {
-         this.logger.info('end');
-         this.ended = true;
-         if (this.redisClient) {
-            this.redisClient.quit();
-         }
+      this.logger.info('end');
+      this.ended = true;
+      if (this.redisClient) {
+         this.redisClient.quit();
       }
    }
 
@@ -30,7 +27,7 @@ export default class Stats {
       });
    }
 
-   async done(name, value, ...args) {
+   async sum(name, value, ...args) {
       const hashesKey = this.app.redisKey('metrics', name);
       const max = await this.app.redisClient.hgetAsync(hashesKey, 'max');
       this.logger.debug('done', name, value, args);
