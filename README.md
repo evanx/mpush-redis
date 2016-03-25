@@ -1,6 +1,8 @@
 
 # mpush-redis
 
+Note: the correct repo is: https://github.com/evanx/mpush-redis
+
 This is a trivial Redis-based message-parallelizing microservice. It supports a persistent pubsub setup via Redis lists, e.g. to support parallel task queues.
 
 It is built for NodeJS, using the Babel transpiler to support async/await.
