@@ -11,7 +11,7 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 
 Incidently, it is possible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
 
-Note that this service will be simplified by removing already-deprecated message monitoring features. Those will be available in `mdispatch-redis.`
+Note that this service will be simplified by removing deprecated message monitoring features. Those will be available in `mdispatch-redis.`
  
 
 ### Related projects
@@ -85,6 +85,8 @@ evans@eowyn:~/mpush-redis$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
 
 ### Advanced/experimental usage
 
+<b>Note that the message monitoring features described below are deprecated from this service.</b> Such functionality will be supported by a more sophisticated spin-off, namely http://github.com/evanx/mdispatch-redis.
+
 Additionally, an optional `messageCapacity` can be configured, for monitoring pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids`.
 
 However, if a message is itself a number, then that is used for the `id.` For example, the publisher might increment `demo:mpush:id,` create the `demo:mpush:message:$id` hashes with `request` content, and push the `id` into `:in`. The subscriber might set the `response` on these hashes, for async response processing, e.g. by the original publisher.
@@ -105,8 +107,6 @@ evans@eowyn:~/mpush-redis$ redis-cli hgetall demo:mpush:metrics:timeout
 where `sum` and `max` are seconds. The average time is calculated by dividing `sum` by `count.` For `:metrics:timeout,` we expect the average and `max` values to be similar to the configured `messageTimeout` e.g. 10 seconds.
 
 Note that the `messageExpire` should exceed the `messageTimeout` sufficiently, for the service to get the message `timestamp` from the `:message:$id` hashes, in order to update the `:metrics:timeout.`
-
-<b>Note that this message monitoring feature is likely to be deprecated from this service, to keep it simple.</b> It will be supported by a more sophisticated service, namely http://github.com/evanx/mdispatch-redis.
 
 
 ### Configuration
