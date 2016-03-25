@@ -59,7 +59,7 @@ INFO App: brpoplpush demo:mpush:in demo:mpush:pending 10
 INFO App: lpush redis://localhost:6379/0 demo:mpush:out0 one
 INFO App: lpush redis://localhost:6379/1 demo:mpush:out1 one
 ```
-where the blocking pop operation has a configured timeout of 10 seconds (but is repeated in a infinite loop. When the pop yields a message, this is pushed into the parallel output queues.
+where the blocking pop operation has a configured timeout of 10 seconds (repeated in a infinite loop). When the pop yields a message, this is pushed into the parallel output queues.
 
 We check that the message is moved to the parallel output queues.
 ```shell
