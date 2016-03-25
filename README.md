@@ -18,12 +18,14 @@ While this is a standalone utility for a specific requirement, it is conceptuall
 
 Note that this service was simplified by removing message monitoring features. Those will be available in the related service `mdispatch-redis` - see https://github.com/evanx/mdispatch-redis.
 
-The capability to configure different Redis instances for output lists was removed. Moving messages between different Redis instances should rather be handled a separate microservice. In order to guarantee delivery, this service must use `multi` to atomically push the messages to all output queues.
+Also, the capability to configure different Redis instances for output lists was removed. Moving messages between different Redis instances should rather be handled by a separate microservice. In order to guarantee delivery, this service must use `multi` to atomically push the messages to all output queues.
+
+Moving messages to a remote Redis instance in a reliable manner, is an entirely different problem, which will be addressed in our `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value," in a reliable fashion.
 
 
 ### Further plans
 
-This service was mostly implemented on a weekend. I plan to implement others in a similar vein, perhaps two per month.
+This service was initially developed in a day. I plan to implement others in a similar vein, perhaps two per month.
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
