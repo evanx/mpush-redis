@@ -1,7 +1,7 @@
 
 # mpush-redis
 
-This is a Redis-based message-parallelizing microservice. Specifically, it supports a persistent pubsub setup via Redis lists, e.g. to support parallel task queues.
+This is a trivial Redis-based message-parallelizing microservice. It supports a persistent pubsub setup via Redis lists, e.g. to support parallel task queues.
 
 It is built for NodeJS, using the Babel transpiler to support async/await.
 
@@ -16,7 +16,7 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 
 While this is a standalone utility which I need for production purposes, it is inspired my "Redex" framework for Redis-based messaging - <a href="https://github.com/evanx/redex">github.com/evanx/redex</a>.
 
-This service was pretty much implemented in a day (on the weekend), and I plan to implement others in a similar vein, perhaps two per month. 
+This service was mostly implemented in a day (on the weekend), and I plan to implement others in a similar vein, perhaps two per month. 
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
@@ -25,8 +25,8 @@ The over-arching goal is to implement many common integration patterns, for the 
 
 This microservice is performs the following Redis operations: 
 
-- `brpoplpush` from a "publishing" list, into a "pending" list.
-- `lpush` to multiple "subscribing" lists, as per its custom configuration.
+- `brpoplpush` a message from a "published" list, into a "pending" list.
+- `lpush` the message to multiple "subscription" lists.
 - Finally, remove the message from the "pending" list.
 
 
@@ -82,9 +82,9 @@ evans@eowyn:~/mpush-redis$ redis-cli -n 1 lrange demo:mpush:out1 0 -1
 
 ### Advanced/experimental usage
 
-Additionally, an optional `messageCapacity` can be configured, for tracking pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids`.
+Additionally, an optional `messageCapacity` can be configured, for monitoring pending messages. Pending messages are assigned an `id` by incrementing a Redis `id` key e.g. `demo:mpush:id` and pushing the pending `id` onto `demo:mpush:ids`.
 
-However, if a message is itself a number, then that is used for the `id.` For example, the publisher might increment `demo:mpush:id,` create the `demo:mpush:message:$id` hashes with `request` content, and push the `id` into `:in`. The subscriber might set the `response` on these hashes, for response processing.
+However, if a message is itself a number, then that is used for the `id.` For example, the publisher might increment `demo:mpush:id,` create the `demo:mpush:message:$id` hashes with `request` content, and push the `id` into `:in`. The subscriber might set the `response` on these hashes, for async response processing, e.g. by the original publisher.
 
 The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` The `:message:$id` hashes expire from Redis after the configured period `messageExpire` (seconds).
 
@@ -102,6 +102,8 @@ evans@eowyn:~/mpush-redis$ redis-cli hgetall demo:mpush:metrics:timeout
 where `sum` and `max` are seconds. The average time is calculated by dividing `sum` by `count.` For `:metrics:timeout,` we expect the average and `max` values to be similar to the configured `messageTimeout` e.g. 10 seconds.
 
 Note that the `messageExpire` should exceed the `messageTimeout` sufficiently, for the service to get the message `timestamp` from the `:message:$id` hashes, in order to update the `:metrics:timeout.`
+
+<b>Note that this message monitoring feature is likely to be deprecated from this service, to keep it simple.</b> It will be supported by a more sophisticated service, namely http://github.com/evanx/mdispatch-redis.
 
 
 ### Configuration
