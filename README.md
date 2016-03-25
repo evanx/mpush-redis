@@ -16,7 +16,7 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 
 While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
 
-Note that this service was simplified by removing message monitoring features. Those will be available in the related service `mdispatch-redis` - see https://github.com/evanx/mdispatch-redis.
+Note that this service was simplified by removing message monitoring features. Those will be available in the related service - see https://github.com/evanx/mdispatch-redis.
 
 Also, the capability to configure different Redis instances for output lists was removed. Moving messages between different Redis instances should rather be handled by a separate microservice. In order to guarantee delivery, this service must use `multi` to atomically push the messages to all output queues.
 
