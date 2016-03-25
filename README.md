@@ -97,7 +97,7 @@ evans@eowyn:~/mpush-redis$ redis-cli hgetall demo:mpush:metrics:timeout
 ```
 where `sum` and `max` are seconds. The average time is calculated by dividing `sum` by `count.` For `:metrics:timeout,` we expect the average and `max` values to be similar to the configured `messageTimeout` e.g. 10 seconds.
 
-Note that the `messageExpire` should exceed the `messageTimeout` sufficiently, for the service to get the message `timestamp` in the event of a timeout, to set `:metrics:timeout.`
+Note that the `messageExpire` should exceed the `messageTimeout` sufficiently, for the service to get the message `timestamp` from the `:message:$id` hashes, in order to update the `:metrics:timeout` hashes in the event of a timeout.
 
 ### Configuration
 
