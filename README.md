@@ -11,12 +11,12 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 
 Incidently, it is possible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
 
-Note that this service will be simplified by removing deprecated message monitoring features. Those will be available in `https://github.com/evanx/mdispatch-redis.`
+Note that this service will be simplified by removing deprecated message monitoring features. Those will be available in https://github.com/evanx/mdispatch-redis.
  
 
 ### Related projects
 
-While this is a standalone utility for a specific requirement, it is inspired by "Redex" framework for Redis-based messaging - `https://github.com/evanx/redex.`
+While this is a standalone utility for a specific requirement, it is inspired by "Redex" framework for Redis-based messaging - https://github.com/evanx/redex.
 
 This service was mostly implemented on a weekend. I plan to implement others in a similar vein, perhaps two per month. 
 
