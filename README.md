@@ -78,7 +78,7 @@ From the logs, we deduce that the service performs the following command.
 ```
 brpoplpush demo:mpush:in demo:mpush:pending 60
 ```
-where the blocking pop operation has a configured timeout of 10 seconds (repeated in a infinite loop). When the pop yields a message, this must be pushed into the parallel output queues.
+where the blocking pop operation has a configured timeout of 60 seconds (repeated in a infinite loop). When the pop yields a message, this must be pushed into the parallel output queues.
 
 We push an incoming message into `:in`
 
