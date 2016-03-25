@@ -90,19 +90,8 @@ The id of a message that has been processed should be pushed to `demo:mpush:done
 
 Specify the configuration file as a command-line parameter.
 
-```
-evans@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
-[2016-03-24T11:53:28.380Z]  INFO: App/7673 on eowyn:
-    start { redis: 'redis://localhost:6379/0',
-      redisNamespace: 'mpush',
-      popTimeout: 60,
-      messageExpire: 30,
-      messageTimeout: 10,
-      messageCapacity: 1000,
-      in: 'mpush:in',
-      pending: 'mpush:pending',
-      done: 'mpush:done',
-      out: [ 'mpush:out0', 'mpush:out1' ]
+```shell
+evanx@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
 ```
 
 The specified config file is loaded via `require().`
