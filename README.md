@@ -82,7 +82,7 @@ Additionally, an optional `messageCapacity` can be configured, for tracking pend
 
 However, if a message is itself a number, then that is used for the `id.` For example, the publisher might increment `demo:mpush:id,` create the `demo:mpush:message:$id` hashes with `request` content, and push the `id` into `:in`. The subscriber might set the `response` on these hashes, for response processing.
 
-The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` The message hashes expire from Redis after the configured period `messageExpire` (seconds).
+The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` The `:message:$id` hashes expire from Redis after the configured period `messageExpire` (seconds).
 
 The id of a message that has been processed should be pushed to `demo:mpush:done` by the subscriber that processes the message. Otherwise the message will timeout automatically, e.g. see the hashes `demo:mpush:metrics:timeout`.
 
