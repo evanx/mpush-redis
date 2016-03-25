@@ -27,7 +27,7 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 
 ### Further plans
 
-This is a "microservice" not least by the metric that it was initially developed in a day or so (for some weekend fun). I plan to implement others in a similar vein, perhaps two per month.
+This is a "microservice" not least by the metric that it was initially developed in a day or so (for some weekend fun). Some subsequent work rather reduced its scope and features. I plan to implement others in a similar vein, perhaps two per month.
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
