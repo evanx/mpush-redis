@@ -63,7 +63,7 @@ export default class MonitorPending {
                   this.logger.debug('fresh', {id, timestamp});
                   return;
                }
-               this.app.stats.peak('timeout', duration, id);
+               this.app.stats.done('timeout', duration, id);
             }
             const multiResults = await this.redisClient.multiExecAsync(multi => {
                multi.del(app.redisKey('message', id));

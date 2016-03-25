@@ -55,7 +55,7 @@ export default class MonitorDone {
          let duration;
          if (meta.timestamp) {
             duration = timestamp - meta.timestamp;
-            this.app.stats.peak('done', duration, id);
+            this.app.stats.done('done', duration, id);
          }
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(app.redisKey('messtime', id));

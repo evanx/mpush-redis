@@ -30,15 +30,15 @@ export default class Stats {
       });
    }
 
-   async peak(name, value, ...args) {
+   async done(name, value, ...args) {
       const hashesKey = this.app.redisKey('metrics', name);
-      const peak = await this.app.redisClient.hgetAsync(hashesKey, 'peak');
-      this.logger.debug('peak', name, value, args);
+      const max = await this.app.redisClient.hgetAsync(hashesKey, 'max');
+      this.logger.debug('done', name, value, args);
       this.redisClient.multiExecAsync(multi => {
          multi.hincrby(hashesKey, 'count', 1);
-         multi.hincrby(hashesKey, 'total', value);
-         if (!peak || value > peak) {
-            multi.hset(hashesKey, 'peak', value);
+         multi.hincrby(hashesKey, 'sum', value);
+         if (!max || value > max) {
+            multi.hset(hashesKey, 'max', value);
          }
       });
    }

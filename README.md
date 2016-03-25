@@ -86,6 +86,17 @@ The message `timestamp` is recorded in Redis hashes `demo:mpush:message:$id.` Th
 
 The id of a message that has been processed should be pushed to `demo:mpush:done` by the subscriber that processes the message. Otherwise the message will timeout automatically, e.g. see the hashes `demo:mpush:metrics:timeout`.
 
+```
+evanx@eowyn:~/mpush-redis$ redis-cli hgetall demo:mpush:metrics:timeout
+1) "count"
+2) "49"
+3) "sum"
+4) "640"
+5) "max"
+6) "23"
+```
+where `sum` and `max` are seconds. The average time is calculated by dividing `sum` by `count.` For `metrics:timeout` we expect the average and `max` to be similar to the configured timeout.
+
 ### Configuration
 
 Specify the configuration file as a command-line parameter.
