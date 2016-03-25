@@ -16,10 +16,9 @@ Note that this service will be simplified by removing deprecated message monitor
 
 ### Related projects
 
-While this is a standalone utility for a specific requirement, it is inspired by "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
+While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
 
 This service was mostly implemented on a weekend. I plan to implement others in a similar vein, perhaps two per month. 
-
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
