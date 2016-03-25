@@ -14,7 +14,7 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 
 ### Related projects
 
-While this is a standalone utility which I need for production purposes, it is inspired my "Redex" framework for Redis-based messaging - <a href="https://github.com/evanx/redex">github.com/evanx/redex</a>.
+While this is a standalone utility for a specific requirement, it is inspired by "Redex" framework for Redis-based messaging - <a href="https://github.com/evanx/redex">github.com/evanx/redex</a>.
 
 This service was mostly implemented in a day (on the weekend), and I plan to implement others in a similar vein, perhaps two per month. 
 
