@@ -73,6 +73,13 @@ INFO App: config {
       out: [ 'demo:mpush:out0', 'demo:mpush:out1' ]
 ```
 
+From the logs, we deduce that the service performs the following command.
+
+```
+brpoplpush demo:mpush:in demo:mpush:pending 60
+```
+where the blocking pop operation has a configured timeout of 10 seconds (repeated in a infinite loop). When the pop yields a message, this must be pushed into the parallel output queues.
+
 We push an incoming message into `:in`
 
 ```shell
@@ -80,14 +87,11 @@ evans@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
 (integer) 1
 ```
 
-From the logs, we see that the service performs the following Redis commands.
-
+From the logs, we deduce that the service performs the following Redis commands.
 ```
-INFO App: brpoplpush demo:mpush:in demo:mpush:pending 10
-INFO App: lpush demo:mpush:out0 one
-INFO App: lpush demo:mpush:out1 one
+lpush demo:mpush:out0 one
+lpush demo:mpush:out1 one
 ```
-where the blocking pop operation has a configured timeout of 10 seconds (repeated in a infinite loop). When the pop yields a message, this is pushed into the parallel output queues.
 
 We check that the message is moved to the parallel output queues.
 ```shell

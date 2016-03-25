@@ -47,7 +47,7 @@ export default class MonitorIncoming {
          this.app.config.out.forEach(out => multi.lpush(out, message));
          multi.lrem(this.app.config.pending, -1, message);
          await multi.execAsync();
-         this.logger.debug('brpoplpush', message, this.app.config.out);
+         this.logger.debug('lpush', message, this.app.config.out);
       }
    }
 }
