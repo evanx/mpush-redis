@@ -112,4 +112,5 @@ The specified config file is loaded via `require()` and so can be a `.js` or a `
 
 #### TODO
 
-Load configuration from Redis hashes.
+- Optionally load configuration from Redis hashes.
+- Support `SIGHUP` and/or notification via Redis to hot reload an updated configuration.
