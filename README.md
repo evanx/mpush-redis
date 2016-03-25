@@ -16,14 +16,18 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 
 While this is a standalone utility which I need for production purposes, it is inspired my "Redex" framework for Redis-based messaging - <a href="https://github.com/evanx/redex">github.com/evanx/redex</a>.
 
-My goal is to implement many microservices such as this, implementing specific "enterprise integration patterns" via Redis.
+This service was pretty much implemented in a day (on the weekend), and I plan to implement others in a similar vein, perhaps two per month. 
 
-This service was developed over a weekend, and indeed I hope to implement a couple of such microservices per month.
+The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
 
 ### Implementation
 
-This microservice will `brpoplpush` from a "publishing" list, into a "pending" list, and then `lpush` to multiple "subscribing" lists, as per its configuration file. Finally, it will remove the message from the "pending" list.
+This microservice is performs the following Redis operations: 
+
+- `brpoplpush` from a "publishing" list, into a "pending" list.
+- `lpush` to multiple "subscribing" lists, as per its custom configuration.
+- Finally, remove the message from the "pending" list.
 
 
 #### Installation
