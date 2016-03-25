@@ -20,7 +20,7 @@ Note that this service was simplified by removing message monitoring features. T
 
 Also, the capability to configure different Redis instances for output lists was removed. Moving messages between different Redis instances should rather be handled by a separate microservice. In order to guarantee delivery, this service must use `multi` to atomically push the messages to all output queues.
 
-Moving messages to a remote Redis instance in a reliable manner, is an entirely different problem, which will be addressed in our `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value," in a reliable fashion.
+Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery-error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
 
 
 ### Further plans
