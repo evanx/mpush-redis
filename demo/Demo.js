@@ -8,7 +8,7 @@ export default class Demo {
    async start(app) {
       this.app = app;
       this.redisClient = app.createRedisClient();
-      this.logger = app.createLogger(module.filename);
+      this.logger = Loggers.createLogger(module.filename);
       setTimeout(() => {
          this.redisClient.lpush(app.config.in, 'one');
          this.redisClient.lpush(app.config.in, 'two');

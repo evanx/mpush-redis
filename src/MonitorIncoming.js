@@ -6,7 +6,7 @@ export default class MonitorIncoming {
 
    async start(app) {
       this.app = app;
-      this.logger = app.createLogger(module.filename);
+      this.logger = Loggers.createLogger(module.filename);
       this.redisClient = app.createRedisClient();
       this.run();
    }

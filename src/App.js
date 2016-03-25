@@ -4,7 +4,6 @@ import bunyan from 'bunyan';
 import fs from 'fs';
 import redisLib from 'redis';
 
-import Asserts from './Asserts';
 import MonitorIncoming from './MonitorIncoming';
 import Stats from './Stats';
 import Demo from '../demo/Demo';
@@ -25,7 +24,6 @@ export default class App {
 
    assertConfig() {
       Asserts.assertString(this.config.redis, 'redis');
-      Asserts.assertString(this.config.redisNamespace, 'redisNamespace');
       Asserts.assertString(this.config.in, 'in');
       Asserts.assertString(this.config.pending, 'pending');
       Asserts.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
@@ -33,12 +31,7 @@ export default class App {
    }
 
    async start() {
-      this.loggerLevel = 'info';
-      if (process.env.NODE_ENV === 'development') {
-         this.loggerLevel = 'debug';
-      }
-      this.logger = this.createLogger(module.filename);
-      this.ended = false;
+      this.logger = Loggers.createLogger(module.filename);
       this.startedComponents = [];
       this.config = await this.loadConfig();
       if (!this.config) {
@@ -47,12 +40,13 @@ export default class App {
       this.assertConfig();
       this.logger.info('start', this.config);
       this.redisClient = this.createRedisClient();
-      this.stats = new Stats();
-      this.stats.start(this);
       this.started = true;
       this.components = [
          new MonitorIncoming(app)
       ];
+      if (this.config.redisNamespace) {
+         this.components.push(new Stats(this.config.redisNamespace, this.redisClient));
+      }
       await Promise.all(this.components.map(component => this.startComponent(component)));
       if (this.readyComponent) {
          await this.startComponent(this.readyComponent);
@@ -75,17 +69,8 @@ export default class App {
       }
    }
 
-   createLogger(filename) {
-      const name = filename.match(/([^\/\\]+)\.[a-z0-9]+/)[1];
-      return bunyan.createLogger({name: name, level: this.loggerLevel});
-   }
-
    createRedisClient() {
       return redisLib.createClient(this.config.redis);
-   }
-
-   redisKey(...values) {
-      return [this.config.redisNamespace, ...values].join(':');
    }
 
    async loadConfig() {

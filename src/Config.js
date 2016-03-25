@@ -8,7 +8,7 @@ export default class Config  { // support Redis-based config
 
    async start(app) {
       this.app = app;
-      this.logger = app.createLogger(module.filename);
+      this.logger = Loggers.createLogger(module.filename);
       this.redisClient = app.createRedisClient();
    }
 
