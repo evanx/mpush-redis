@@ -25,6 +25,7 @@ This service was developed over a weekend, and indeed I hope to implement a coup
 
 This microservice will `brpoplpush` from a "publishing" list, into a "pending" list, and then `lpush` to multiple "subscribing" lists, as per its configuration file. Finally, it will remove the message from the "pending" list.
 
+
 #### Installation
 
 ```shell
@@ -87,7 +88,7 @@ The id of a message that has been processed should be pushed to `demo:mpush:done
 
 ### Configuration
 
-Specify the configuration file-name as a command-line parameter.
+Specify the configuration file as a command-line parameter.
 
 ```
 evans@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
@@ -104,4 +105,4 @@ evans@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
       out: [ 'mpush:out0', 'mpush:out1' ]
 ```
 
-The specified config file is loaded via `require()`
+The specified config file is loaded via `require().`
