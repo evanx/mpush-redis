@@ -1,51 +1,41 @@
 
+/*
 import bluebird from 'bluebird';
 import bunyan from 'bunyan';
 import fs from 'fs';
 import redisLib from 'redis';
+*/
 
 import MonitorIncoming from './MonitorIncoming';
 import Stats from './Stats';
 import Demo from '../demo/Demo';
 
-function initRedis() {
-   bluebird.promisifyAll(redisLib.RedisClient.prototype);
-   bluebird.promisifyAll(redisLib.Multi.prototype);
-   redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
-      const multi = this.multi();
-      fn(multi);
-      return multi.execAsync();
-   };
-}
-
-initRedis();
-
-export default class App {
+export default class Service {
 
    assertConfig() {
-      Asserts.assertString(this.config.redis, 'redis');
-      Asserts.assertString(this.config.in, 'in');
-      Asserts.assertString(this.config.pending, 'pending');
-      Asserts.assertIntMin(this.config.popTimeout, 'popTimeout', 10);
-      Asserts.assertStringArray(this.config.out, 'out');
+      Asserts.assertString(this.props.redis, 'redis');
+      Asserts.assertString(this.props.in, 'in');
+      Asserts.assertString(this.props.pending, 'pending');
+      Asserts.assertIntMin(this.props.popTimeout, 'popTimeout', 10);
+      Asserts.assertStringArray(this.props.out, 'out');
    }
 
    async start() {
       this.logger = Loggers.createLogger(module.filename);
       this.startedComponents = [];
-      this.config = await this.loadConfig();
-      if (!this.config) {
+      this.props = await this.loadProps();
+      if (!this.props) {
          throw 'Not configured';
       }
       this.assertConfig();
-      this.logger.info('start', this.config);
+      this.logger.info('start', this.props);
       this.redisClient = this.createRedisClient();
       this.started = true;
       this.components = [
-         new MonitorIncoming(app)
+         new MonitorIncoming(this.props, this)
       ];
-      if (this.config.redisNamespace) {
-         this.components.push(new Stats(this.config.redisNamespace, this.redisClient));
+      if (this.props.redisNamespace) {
+         this.components.push(new Stats(this.props, this));
       }
       await Promise.all(this.components.map(component => this.startComponent(component)));
       if (this.readyComponent) {
@@ -69,16 +59,13 @@ export default class App {
       }
    }
 
-   createRedisClient() {
-      return redisLib.createClient(this.config.redis);
-   }
-
-   async loadConfig() {
+   async loadProps() {
       if (process.argv.length === 3) {
          const arg = process.argv[2];
          if (arg === 'demo') {
-            this.readyComponent = new Demo();
-            return await this.readyComponent.loadConfig();
+            const props = require('../demo/props');
+            this.readyComponent = new Demo(props, this);
+            return props;
          } else if (/\.js$/.test(arg)) {
             if (fs.existsSync(arg)) {
                return require(arg);
@@ -94,4 +81,13 @@ export default class App {
          }, millis);
       });
    }
+
+   createRedisClient(url) {
+      return redisLib.createClient(url);
+   }
+
+   createLogger(filename) {
+      return Loggers.createLogger(filename);
+   }
+
 }

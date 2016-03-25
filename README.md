@@ -42,12 +42,12 @@ This microservice is performs the following Redis operations:
 
 Herewith a simplified code snippet for illustration:
 ```javascript
-   const message = await this.redisClient.brpoplpushAsync(this.app.config.in,
-      this.app.config.pending, this.app.config.popTimeout);
+   const message = await this.redisClient.brpoplpushAsync(this.props.in,
+      this.props.pending, this.props.popTimeout);
    if (message) {
       const multi = this.redisClient.multi();
-      this.app.config.out.forEach(out => multi.lpush(out, message));
-      multi.lrem(this.app.config.pending, -1, message);
+      this.props.out.forEach(out => multi.lpush(out, message));
+      multi.lrem(this.props.pending, -1, message);
       await multi.execAsync();
    }
 ```
@@ -114,8 +114,3 @@ evanx@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
 ```
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
-
-#### TODO
-
-- Optionally load configuration from Redis hashes.
-- Support `SIGHUP` and/or notification via Redis to hot reload an updated configuration.

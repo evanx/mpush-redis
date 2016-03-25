@@ -3,9 +3,9 @@ const logger = Loggers.createLogger(module.filename);
 
 export default class Stats {
 
-   constructor(redisNamespace, redisClient) {
+   constructor(props, redisClient) {
       this.redisClient = Asserts.assert(redisClient, 'redisClient');
-      this.redisNamespace = Asserts.assert(redisNamespace, 'redisNamespace');
+      this.redisNamespace = Asserts.assert(props.redisNamespace, 'redisNamespace');
    }
 
    async start() {

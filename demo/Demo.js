@@ -1,18 +1,18 @@
 
 export default class Demo {
 
-   async loadConfig() {
-      return require('./config');
+   constructor(props, service) {
+      Object.assign(this, {props, service}, {
+         redisClient: service.createRedisClient(props.redis),
+         logger: service.createLogger(module.filename)
+      });
    }
 
-   async start(app) {
-      this.app = app;
-      this.redisClient = app.createRedisClient();
-      this.logger = Loggers.createLogger(module.filename);
+   async start() {
       setTimeout(() => {
-         this.redisClient.lpush(app.config.in, 'one');
-         this.redisClient.lpush(app.config.in, 'two');
-         this.redisClient.lpush(app.config.in, 'three');
+         this.redisClient.lpush(this.props.in, 'one');
+         this.redisClient.lpush(this.props.in, 'two');
+         this.redisClient.lpush(this.props.in, 'three');
       }, 1000);
    }
 
