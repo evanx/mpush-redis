@@ -99,6 +99,7 @@ where `sum` and `max` are seconds. The average time is calculated by dividing `s
 
 Note that the `messageExpire` should exceed the `messageTimeout` sufficiently, for the service to get the message `timestamp` from the `:message:$id` hashes, in order to update the `:metrics:timeout.`
 
+
 ### Configuration
 
 Specify the configuration file as a command-line parameter.
@@ -107,4 +108,8 @@ Specify the configuration file as a command-line parameter.
 evanx@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
 ```
 
-The specified config file is loaded via `require().`
+The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
+
+#### TODO
+
+Load configuration from Redis hashes.
