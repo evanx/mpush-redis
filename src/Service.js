@@ -72,6 +72,7 @@ export default class Service {
          pid: process.pid,
          started: this.startTimestamp
       };
+      assert.equal(await this.redisClient.existsAsync(this.key), 0, 'key: ' + this.key);
       const [hmset, expire, ids] = await this.redisClient.multiExecAsync(multi => {
          multi.hmset(this.key, this.meta);
          multi.expire(this.key, this.props.serviceExpire);

@@ -108,7 +108,7 @@ The specified config file is loaded via `require()` and so can be a `.js` or a `
 
 ### Lifecycle management
 
-An optional `redisNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.
+If an optional `redisNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.
 
 At startup, the service will perform the following to "register" itself:
 - `incr :id` to obtain a unique service instance `id`
@@ -130,9 +130,11 @@ redis-cli hkeys demo:mpush:9
 ```
 The `renewed` field above, is the heartbeat timestamp.
 
-Incidently, if a service fails to renew its hashes, then it must exit. This provides a mechanism to terminate the service "remotely" via Redis, albeit not very gracefully. Anyway, we consider Redis as the "source of truth" and so if the service does not exist in Redis, then it cannot exist. An alternative to expiry/renewal, would require a heartbeat timestamp for cleaning up zombie service data, and after cleaning up said that, that zombie process must detect that, and exit rather than trying anything funny.
+Suffice it to say that if a service fails to renew its hashes, i.e. it's heartbeat monitor fails, then it must exit.
 
-Additionally, we track activated ids as follows:
+Incidently, services should perform a startup check that its hashes key does not exist, 
+
+Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
 
