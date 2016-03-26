@@ -1,7 +1,15 @@
 
 import assert from 'assert';
 
+function format(type, options) {
+   return type + ': ' + options.toString();
+}
+
 module.exports = {
+   assert(value, name) {
+      assert(value, name);
+      return value;
+   },
    assertString(value, name) {
       assert(value, name);
       assert(typeof value === 'string', name);
@@ -18,9 +26,12 @@ module.exports = {
       return value;
    },
    assertIntMin(value, name, min) {
-      assert(value, name);
-      assert(Number.isInteger(value), name);
-      assert(value >= min, name);
+      if (!min) {
+         min = Invariants.props[name].min;
+      }
+      assert(value, {name, value});
+      assert(Number.isInteger(value), format('integer', {name, value}));
+      assert(value >= min, format('min', {name, value, min}));
       return value;
    },
    assertStringArray(value, name) {

@@ -1,26 +1,22 @@
 
 export default class Demo {
 
-   constructor(props, service) {
-      Object.assign(this, {props, service}, {
-         redisClient: service.createRedisClient(props.redis),
-         logger: service.createLogger(module.filename)
-      });
+   constructor(name) {
+      this.name = name;
    }
 
-   async start() {
+   async start(that) {
+      Object.assign(this, that);
+      this.logger.info('started', this.props.redis);
+      this.redisClient = this.service.createRedisClient(this.props.redis);
       setTimeout(() => {
          this.redisClient.lpush(this.props.in, 'one');
          this.redisClient.lpush(this.props.in, 'two');
          this.redisClient.lpush(this.props.in, 'three');
-      }, 1000);
+      }, 2000);
    }
 
    async end() {
-      this.logger.info('end');
-      this.ended = true;
-      if (this.redisClient) {
-         this.redisClient.quit();
-      }
+      await this.redisClient.quitAsync();
    }
 }

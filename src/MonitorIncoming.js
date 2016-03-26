@@ -1,23 +1,19 @@
 
 export default class MonitorIncoming {
 
-   constructor(props, service) {
-      this.props = props;
-      this.service = this.service;
-      this.logger = service.createLogger(module.filename);
-      this.redisClient = service.createRedisClient(props.redis);
+   constructor(name) {
+      this.name = name;
    }
 
-   async start() {
-      this.run();
+   async start(state) {
+      Object.assign(this, state);
+      this.redisClient = service.createRedisClient(this.props.redis);
+      this.runPromise = this.run();
    }
 
    async end() {
-      this.logger.info('end');
       this.ended = true;
-      if (this.redisClient) {
-         this.redisClient.quit();
-      }
+      return this.runPromise;
    }
 
    async run() {
@@ -34,6 +30,7 @@ export default class MonitorIncoming {
             }
          }
       }
+      await this.redisClient.quitAsync();
    }
 
    async pop() {
@@ -44,11 +41,11 @@ export default class MonitorIncoming {
       this.logger.debug('brpoplpush', this.props.in, this.props.pending, this.props.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.props.in, this.props.pending, this.props.popTimeout);
       if (message) {
+         this.logger.debug('lpush', message, this.props.out);
          const multi = this.redisClient.multi();
          this.props.out.forEach(out => multi.lpush(out, message));
          multi.lrem(this.props.pending, -1, message);
          await multi.execAsync();
-         this.logger.debug('lpush', message, this.props.out);
       }
    }
 }

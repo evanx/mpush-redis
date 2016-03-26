@@ -15,6 +15,8 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
    return multi.execAsync();
 };
 
+global.Invariants = require('./src/Invariants');
+
 global.loggerLevel = 'info';
 if (process.env.loggerLevel) {
    global.loggerLevel = process.env.loggerLevel;
@@ -24,15 +26,16 @@ if (process.env.loggerLevel) {
 var logger = global.bunyan.createLogger({name: 'entry', level: 'debug'});
 require("babel-polyfill");
 require('babel-core/register');
-//logger.debug('babel');
+logger.debug('babel registered');
 global.Loggers = require('./src/Loggers');
 global.Asserts = require('./src/Asserts');
 var Service = require('./src/Service').default;
 //logger.debug('App', typeof App, Object.keys(App));
 global.service = new Service();
 global.service.start().then(function() {
-   logger.info('started');
+   logger.info('started pid', process.pid);
    process.on('SIGTERM', function() {
+      logger.info('SIGTERM')
       global.service.end();
    });
 }).catch(function(err) {

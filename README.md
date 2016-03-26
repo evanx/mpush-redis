@@ -22,14 +22,16 @@ Note that this service was simplified by removing message monitoring features. T
 
 Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues.
 
-Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery-error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
+Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
 
 
 ### Further plans
 
-This is a "microservice" not least by the metric that it was initially developed in a day or so (for some weekend fun). Some subsequent work rather reduced its scope and features. I plan to implement others in a similar vein, perhaps two per month.
+This is a "microservice" not least by the metric that it was initially developed in a day or so (for some weekend fun). Some subsequent work rather reduced its scope and features. I plan to implement others in a similar vein, perhaps two per month, where their scope is bounded as tightly as possible.
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
+
+The power of a system is the sum of its parts, which is greater if those parts are composable.
 
 
 ### Implementation
@@ -78,11 +80,15 @@ INFO App: config {
 From the logs, we deduce that the service performs the following command.
 
 ```
-brpoplpush demo:mpush:in demo:mpush:pending 60
+brpoplpush demo:mpush:in demo:mpush:pending 5
 ```
-where the blocking pop operation has a configured timeout of 60 seconds (repeated in a infinite loop). When the pop yields a message, this must be pushed into the parallel output queues.
+where the blocking pop operation has a configured timeout of 5 seconds (repeated in a infinite loop).
 
-We push an incoming message into `:in`
+Note that this time determines the duration of a graceful shutdown, because we can only quit when this operation yields.
+
+When the pop yields a message, this service must be push this message into the parallel output queues.
+
+Let's manually test this by pushing an incoming message into `:in`
 
 ```shell
 evans@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
@@ -107,10 +113,10 @@ evans@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
 
 ### Configuration
 
-Specify the configuration file as a command-line parameter.
+Specify the configuration file via the `propsFile` environment variable.
 
 ```shell
-evanx@eowyn:~/mpush-redis$ node index.js ~/config/mpush-redis.js | bunyan
+evanx@eowyn:~/mpush-redis$ propsFile=~/config/mpush-redis.js npm start
 ```
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
