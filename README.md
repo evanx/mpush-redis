@@ -228,33 +228,37 @@ We plan to include histogram data e.g. counting the times falling between "tenth
 
 ### Related projects
 
-While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
-
-Note that this service was simplified by removing message monitoring features. Those will be available in a related service - see https://github.com/evanx/mdispatch-redis.
-
-Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues atomically.
-
-Moving messages to a remote Redis instance, is a different problem - namely, reliable/guaranteed delivery. This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
 
 #### vpush-redis
+
+An upcoming `vpush-redis` service will "reliably" move messages to a "remote" Redis queue.
+
+That name is an acronym for "value push," since it's purpose is to push a Redis value
 
 The `vpush` microservice must:
 - be configured with one input and one output queue on different Redis URLs
 - retry delivery of each message indefinitely
-- process at most one message at a time, across all shared-state replica service instances
+- process at most one message at a time, across all replica service instances
 
-They must be on separate Redis instances, since it would not use `multi.`
+They must be on separate Redis instances, since it will not use `multi.`
 
-##### lpush-redis
 
-As such, we might implement another service, namely `lpush,` for input and output queues that must be on the same Redis instance. This implementation would `multi.`
+#### lpush-redis
+
+We will implement another service, namely `lpush,` for the case where input and output queues are on the same Redis instance. This implementation will use `multi.`
+
+
+#### Redex
+
+While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
 
 
 ### Multiple repos vs a unified toolkit
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
 
-However, the idea of "immutable microservices" appeals to me. We'll see how that goes. Probably I will also combine them into one toolkit to rule them all.
+However, the idea of "immutable microservices" appeals to me. We'll see how that goes.
+
 
 ### Further plans
 
