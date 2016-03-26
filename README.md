@@ -183,9 +183,10 @@ Therefore in the event of a service not shutting down gracefully, the stale `id`
 
 A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
 - `incr :id` to obtain a sequential unique message `$id`
-- `lpush :ids $id` to register the new active `$id`
+- `exists :$id` to check that the message key does not exist.
 - `hmset :$id {fields}` for meta info
 - `expire :$id $messageExpire` for automatic "garbage-collection"
+- `lpush :ids $id` to register the new active `$id`
 
 We require processors to monitor:
 - timeouts, for metrics and retries
@@ -203,7 +204,7 @@ The "expired monitor" performs the following garbage-collection:
 
 The `:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
 
-The worker microservice which actually handles the message, pushes its id into a `:done` list. This list is monitored by our Redis "message broker" microservice, to detected timeouts i.e. not "done" after the `messageTimeout` period.
+The worker microservice which actually handles the message, pushes its id into a `:done` list. This list is monitored by our Redis microservice, to detect timeouts i.e. not "done" after the `messageTimeout` period.
 
 Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor sufficient time to detect timeouts.
 
