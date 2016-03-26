@@ -27,15 +27,19 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 
 ### Further plans
 
-The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices, into resilient and scalable distributed systems.
+The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
 
 - vpush - transport messages to a remote Redis instance
-- mdispatch - tracking messages for response handling, e.g. building a Redis-based web server
+- mdispatch - tracking messages for response handling, e.g. building a distrbuted web server
 - mbalance - push a message to a work queue with the lowest back-pressure (length)
 - himporter - import an HTTP request into a Redis queue for subsequent routing and processing
 - hrouter - route an HTTP message by matching its URL (using regex)
 - sregister - service self-registration for service discovery
 - sdeploy - service orchestration
+
+My "holy grail" would be a load-balancing, auto-scaling distributed webserver, implemented relatively simply by leveraging Redis for persistent message storage, shared memory/state and synchronised data access.
+
+While Node.js might not be as performant as Go, we benefit from the performance of Redis, and the accessibility and productivity of JavaScript - in particular ES6 with arrow functions, and ES2016 for async/await sugaring of ES6 promises/generators.
 
 
 ### Implementation
