@@ -184,7 +184,7 @@ redis-cli del demo:mpush:9
 redis-cli lrem demo:mpush:ids -1 9
 ```
 
-At startup, the service checks active `:ids` and removes expired services
+At startup, the service compacts the active `:ids` as follows.
 - if `:$id` does not exist e.g. has expired or was deleted, then `lrem :ids -1 $id`
 
-Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time, once the `:$id` hashes have expired.
+Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
