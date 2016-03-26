@@ -40,7 +40,9 @@ The over-arching goal is to implement many such microservices for common integra
 - h-react - render a React template
 - r-query - retrieve application data from Redis
 
-While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators). Universal JavaScript is of course compelling for web development.
+While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
+
+"Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
 
 My "holy grail" would be a resilient auto-scaling distributed webserver. This can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and service orchestration.
 
