@@ -248,10 +248,7 @@ As such, we might implement another service, namely `lpush,` for input and outpu
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
 
-However, it this stage it's fun experimenting, and low-noise commit-logs are preferrable.
-
-Also the idea of "immutable microservices" appeals to me, i.e. only essential bugfixes allowed.
-
+However, the idea of "immutable microservices" appeals to me. We'll see how that goes. Probably I will also combine them into one toolkit to rule them all.
 
 ### Further plans
 
