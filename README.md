@@ -108,7 +108,7 @@ The specified config file is loaded via `require()` and so can be a `.js` or a `
 
 ### Lifecycle management
 
-An optional `redisNamespace` property e.g. `demo:mpush,` is used for lifecycle management, and metrics.
+An optional `redisNamespace` configuration property e.g. `"demo:mpush",` is used for lifecycle management, and metrics.
 
 At startup, the service will perform the following to "register" itself:
 - `incr :id` to obtain a unique service instance `id`
