@@ -182,7 +182,7 @@ Therefore in the event of a service not shutting down gracefully, the stale `id`
 ### Message tracking for timeouts and retries
 
 A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
-- `incr :id` to obrain a sequential unique message `$id`
+- `incr :id` to obtain a sequential unique message `$id`
 - `lpush :ids $id` to register the new active `$id`
 - `hmset :$id {fields}` for meta info
 - `expire :$id $messageExpire` for automatic "garbage-collection"
