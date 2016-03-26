@@ -18,9 +18,9 @@ Incidently, it is possible to provision multiple instances of a subscription "mi
 
 While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
 
-Note that this service was simplified by removing message monitoring features. Those will be available in the related service - see https://github.com/evanx/mdispatch-redis.
+Note that this service was simplified by removing message monitoring features. Those will be available in a related service - see https://github.com/evanx/mdispatch-redis.
 
-Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues.
+Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues atomically.
 
 Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
 
@@ -184,7 +184,7 @@ redis-cli del demo:mpush:9
 redis-cli lrem demo:mpush:ids -1 9
 ```
 
-At startup, the service compacts the active `:ids` as follows.
-- if `:$id` does not exist e.g. has expired or was deleted, then `lrem :ids -1 $id`
+At startup, the service compacts the listed active `:ids` as follows.
+- if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
 
 Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.

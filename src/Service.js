@@ -157,10 +157,6 @@ export default class Service {
       }
    }
 
-   series(promises) {
-      return promises.reduce((p, fn) => p.then(fn), Promise.resolve());
-   }
-
    delay(millis) {
       return new Promise((resolve, reject) => {
          setTimeout(() => {
@@ -169,12 +165,12 @@ export default class Service {
       });
    }
 
-   createRedisClient(url) {
-      return redisLib.createClient(url);
-   }
-
    createLogger(name) {
       return bunyan.createLogger({name: name, level: global.loggerLevel});
+   }
+
+   createRedisClient(url) {
+      return redisLib.createClient(url);
    }
 
    redisKey(...values) {
