@@ -27,20 +27,26 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 
 ### Further plans
 
-This is a "microservice" not least by the metric that it was initially developed in a day or so, for some weekend fun. I plan to similarly implement other services, perhaps two per month.
+The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices, into resilient and scalable distributed systems.
 
-The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
-
-The power of a system is far greater than the sum of its parts - when those are composable.
+- vpush - transport messages to a remote Redis instance
+- mdispatch - tracking messages for response handling, e.g. building a Redis-based web server
+- mbalance - push a message to a work queue with the lowest back-pressure (length)
+- himporter - import an HTTP request into a Redis queue for subsequent routing and processing
+- hrouter - route an HTTP message by matching its URL (using regex)
+- sregister - service self-registration for service discovery
+- sdeploy - service orchestration
 
 
 ### Implementation
 
-This microservice is performs the following Redis operations:
+This microservice is performs the following Redis operations.
 
-- `brpoplpush` a message from a "published" list, into a "pending" list.
+- `brpoplpush` a message from a "publication" list, into a "pending" list.
 - `lpush` the message to multiple "subscription" lists.
 - Finally, remove the message from the "pending" list.
+
+These operations are performed atomically, via Redis `multi.`
 
 Herewith a simplified code snippet for illustration:
 ```javascript
@@ -54,6 +60,8 @@ Herewith a simplified code snippet for illustration:
    }
 ```
 where we use `bluebird.promisifyAll` which mixes in async functions e.g. `execAsync` et al.
+
+The blocking pop operation has a configured `popTimeout.` It is performed in a loop, until the service is "ended," so it can shutdown gracefully, after a period no longer than `popTimeout,` e.g. in the event of a `SIGTERM` signal.
 
 
 #### Installation
@@ -188,3 +196,48 @@ At startup, the service compacts the listed active `:ids` as follows.
 - if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
 
 Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
+
+## Message tracking for timeouts and retries
+
+A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
+- `incr :id` to obrain a sequential unique message `$id`
+- `lpush :ids $id` to register the new active `$id`
+- `hmset :$id {fields}` for meta info
+- `expire :$id $messageExpire` for automatic "garbage-collection"
+
+We require processors to monitor:
+- timeouts, for metrics and retries
+- expiry, for garbage-collection
+
+### Expire monitor
+
+The "expired monitor" performs the following garbage-collection:
+- `lrange :ids 0 -1` and for each, `exists :$id` to detect expired messages
+- `lrem :ids -1 $id` to remove a expired an `id` from the `:ids` list
+
+
+### Timeout monitor
+
+
+The `:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
+
+The worker microservice which actually handles the message, pushes its id into a `:done` list. This list is monitored by our Redis "message broker" microservice, to detected timeouts i.e. not "done" after the `messageTimeout` period.
+
+Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor sufficient time to detect timeouts.
+
+The "timeout monitor" performs the following:
+- `lrange :done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` hashes
+- `hget :$id timestamp` to get the original timestamp of a message
+- `hset :metrics:done max $max` to set peak response times
+- `lrem :ids -1 $id` for garbage-collection of messages that have expired
+
+The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
+
+
+### Metrics
+
+We update `:metrics:$name` hashes with fields `{count, sum, max}.`
+
+The average time can be calculated by dividing `sum/count.`
+
+We plan to include histogram data e.g. counting the times falling between "tenth percentile" intervals of the timeout, e.g. under 10%, and up to between 90% to 100%, as well as the number of timeouts, i.e. greater than 100%.
