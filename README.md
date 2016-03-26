@@ -44,7 +44,7 @@ While Node.js might not be as performant as Go or Rust for example, we neverthel
 
 "Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
 
-My "holy grail" would be a resilient auto-scaling distributed webserver. This can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and service orchestration.
+My "holy grail" would be a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring, and service orchestration.
 
 I'm interested in applying this to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
 
