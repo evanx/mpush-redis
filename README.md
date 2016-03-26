@@ -27,11 +27,11 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 
 ### Further plans
 
-This is a "microservice" not least by the metric that it was initially developed in a day or so (for some weekend fun). Some subsequent work rather reduced its scope and features. I plan to implement others in a similar vein, perhaps two per month, where their scope is bounded as tightly as possible.
+This is a "microservice" not least by the metric that it was initially developed in a day or so, for some weekend fun. I plan to similarly implement other services, perhaps two per month.
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
-The power of a system is the sum of its parts, which is greater if those parts are composable.
+The power of a system is greater than the sum of its parts when those are composable.
 
 
 ### Implementation
@@ -120,3 +120,29 @@ evanx@eowyn:~/mpush-redis$ propsFile=~/config/mpush-redis.js npm start
 ```
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
+
+
+### Lifecycle management
+
+An optional `redisNamespace` property e.g. `demo:mpush,` is used for lifecycle management as follows:
+
+- `incr :id` to obtain a unique service instance `id`
+- `hmset :$id` to record `{host, pid, started}` et al
+- `expire :$id $serviceExpire` but renew at an interval sufficiently less than `$serviceExpire`
+- at startup, check `:ids` for expired ids, and `lrem :ids $id`
+
+Additionally, we track activated ids as follows:
+- `lpush :ids $id`
+- `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
+
+`SIGTERM` should result in a clean shutdown:
+- `del :$id`
+- `lrem :ids -1 $id` i.e. scanning from the tail
+
+Services can be shutdown manually:
+- `lrange :ids 0 -1` to see all "active" ids
+- `del :$id` to delete the service key, which should cause a shutdown
+- `lrem :ids $id`
+
+At startup, the service checks active `:ids` and removes expired services
+- if `:$id` does not exist e.g. has expired or was deleted, then `lrem :ids -1 $id`
