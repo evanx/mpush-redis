@@ -11,7 +11,7 @@ In practice, some "publisher" pushes a message onto a Redis list. This service p
 
 Clearly if a subscriber is offline, its incoming messages are "persistent" since they accumulate in Redis, and are available when the subscriber comes online again.
 
-Incidently, it is possible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
+Incidently, a "subscriber" could be comprised of redundant microservices consuming the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
 
 
 ### Implementation
@@ -227,8 +227,28 @@ Note that this service was simplified by removing message monitoring features. T
 
 Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues atomically.
 
-Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
+Moving messages to a remote Redis instance, is a different problem - namely, reliable/guaranteed delivery. This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
 
+#### vpush-redis
+
+The `vpush` microservice must:
+- be configured with one input and one output queue on different Redis URLs
+- retry delivery of each message indefinitely
+- process at most one message at a time, across all shared-state replica service instances
+
+They must be on separate Redis instances, since it would not use `multi.`
+
+##### lpush-redis
+
+As such, we might implement another service, namely `lpush,` for input and output queues that must be on the same Redis instance. This implementation would `multi.`
+
+### Multiple repos vs a unified toolkit
+
+It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
+
+However, it this stage it's fun experimenting, and low-noise commit-logs are preferrable.
+
+Also the idea of "immutable microservices" appeals to me, i.e. only essential bugfixes allowed.
 
 ### Further plans
 
