@@ -14,41 +14,6 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 Incidently, it is possible to provision multiple instances of a subscription "microservice," where any instance can pop the next available message off the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
 
 
-### Related projects
-
-While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
-
-Note that this service was simplified by removing message monitoring features. Those will be available in a related service - see https://github.com/evanx/mdispatch-redis.
-
-Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues atomically.
-
-Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
-
-
-### Further plans
-
-The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
-
-- v-push - transport messages to a remote Redis instance
-- m-dispatch - tracking messages for response handling, e.g. building a distributed web server
-- m-balance - push a message to a work queue with the lowest queue length
-- s-register - service self-registration for service discovery
-- c-scale - service orchestration triggered by Redis-based messaging
-- h-importer - import an HTTP request into a Redis queue for subsequent routing and processing
-- h-router - route an HTTP message by matching its URL (using regex)
-- h-assets - static webserver for serving assets
-- h-react - render a React template
-- r-query - retrieve application data from Redis
-
-While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
-
-"Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
-
-My "holy grail" would be a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring, and service orchestration.
-
-I'm interested in applying this to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
-
-
 ### Implementation
 
 This microservice is performs the following Redis operations.
@@ -252,3 +217,38 @@ We update `:metrics:$name` hashes with fields `{count, sum, max}.`
 The average time can be calculated by dividing `sum/count.`
 
 We plan to include histogram data e.g. counting the times falling between "tenth percentile" intervals of the timeout, e.g. under 10%, and up to between 90% to 100%, as well as the number of timeouts, i.e. greater than 100%.
+
+
+### Related projects
+
+While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
+
+Note that this service was simplified by removing message monitoring features. Those will be available in a related service - see https://github.com/evanx/mdispatch-redis.
+
+Also, the capability to configure different Redis instances for output lists was removed. In order to guarantee delivery, clearly this service must use `multi` to atomically push the messages to all output queues atomically.
+
+Moving messages to a remote Redis instance, is a different problem, e.g. we want to retry forever in the event of a "delivery error." This will be addressed in an upcoming `vpush-redis` service. That name is an acronym for "value push," since it's purpose is to push a Redis "value" to a remote instance "reliably."
+
+
+### Further plans
+
+The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
+
+- v-push - transport messages to a remote Redis instance
+- m-dispatch - tracking messages for response handling, e.g. building a distributed web server
+- m-balance - push a message to a work queue with the lowest queue length
+- s-register - service self-registration for service discovery
+- c-scale - service orchestration triggered by Redis-based messaging
+- h-importer - import an HTTP request into a Redis queue for subsequent routing and processing
+- h-router - route an HTTP message by matching its URL (using regex)
+- h-assets - static webserver for serving assets
+- h-react - render a React template
+- r-query - retrieve application data from Redis
+
+While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
+
+"Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
+
+My "holy grail" would be a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring, and service orchestration.
+
+I'm interested in applying this to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
