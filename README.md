@@ -86,7 +86,7 @@ where the blocking pop operation has a configured timeout of 5 seconds (repeated
 
 Note that this time determines the duration of a graceful shutdown, because we can only quit when this operation yields.
 
-When the pop yields a message, this service must be push this message into the parallel output queues.
+When the pop yields a message, this service must push this message into the parallel output queues.
 
 Let's manually test this by pushing an incoming message into `:in`
 
