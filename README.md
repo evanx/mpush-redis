@@ -40,7 +40,7 @@ where we use `bluebird.promisifyAll` which mixes in async functions e.g. `execAs
 The blocking pop operation has a configured `popTimeout.` It is performed in a loop, until the service is "ended," so it can shutdown gracefully, after a period no longer than `popTimeout,` e.g. in the event of a `SIGTERM` signal.
 
 
-#### Installation
+### Installation
 
 ```shell
 git clone https://github.com/evanx/mpush-redis
@@ -173,7 +173,8 @@ At startup, the service compacts the listed active `:ids` as follows.
 
 Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
 
-## Message tracking for timeouts and retries
+
+### Message tracking for timeouts and retries
 
 A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
 - `incr :id` to obrain a sequential unique message `$id`
@@ -185,15 +186,15 @@ We require processors to monitor:
 - timeouts, for metrics and retries
 - expiry, for garbage-collection
 
-### Expire monitor
+
+#### Expire monitor
 
 The "expired monitor" performs the following garbage-collection:
 - `lrange :ids 0 -1` and for each, `exists :$id` to detect expired messages
 - `lrem :ids -1 $id` to remove a expired an `id` from the `:ids` list
 
 
-### Timeout monitor
-
+#### Timeout monitor
 
 The `:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
 
@@ -242,6 +243,7 @@ They must be on separate Redis instances, since it would not use `multi.`
 
 As such, we might implement another service, namely `lpush,` for input and output queues that must be on the same Redis instance. This implementation would `multi.`
 
+
 ### Multiple repos vs a unified toolkit
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
@@ -249,6 +251,7 @@ It might make more sense to combine the various services e.g. `mpush` vs `lpush`
 However, it this stage it's fun experimenting, and low-noise commit-logs are preferrable.
 
 Also the idea of "immutable microservices" appeals to me, i.e. only essential bugfixes allowed.
+
 
 ### Further plans
 
