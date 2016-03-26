@@ -4,7 +4,7 @@ c0flush() {
 }
 
 c0clear() {
-  for list in in pending out0 out1
+  for list in in pending ids out0 out1
   do
     key="demo:mpush:$list"
     echo "del $key" `redis-cli del $key`
@@ -34,10 +34,10 @@ c0kill() {
 c0state() {
   echo
   redis-cli keys 'demo:mpush*' | sort
-  for list in in pending out0 out1
+  for list in in ids pending out0 out1 
   do
     key="demo:mpush:$list"
-    echo "llen $key" `redis-cli llen $key`
+    echo "llen $key" `redis-cli llen $key` `redis-cli lrange $key 0 99`
   done
   id=`redis-cli lrange demo:mpush:ids -1 -1`
   if [ -n "$id" ]
@@ -45,8 +45,6 @@ c0state() {
     echo "hgetall demo:mpush:$id"
     redis-cli hgetall demo:mpush:$id
   fi
-  echo out0 `redis-cli lrange demo:mpush:out0 0 -1`
-  echo out1 `redis-cli lrange demo:mpush:out1 0 -1`
 }
 
 c1push() {

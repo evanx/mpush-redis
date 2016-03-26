@@ -10,9 +10,10 @@ export default class Demo {
       this.logger.info('started', this.props.redis);
       this.redisClient = this.service.createRedisClient(this.props.redis);
       setTimeout(() => {
-         this.redisClient.lpush(this.props.in, 'one');
-         this.redisClient.lpush(this.props.in, 'two');
-         this.redisClient.lpush(this.props.in, 'three');
+         ['one', 'two', 'three'].forEach(message => {
+            this.logger.info('push', this.props.in, message);
+            this.redisClient.lpush(this.props.in, message);
+         });
       }, 2000);
    }
 

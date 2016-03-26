@@ -124,25 +124,68 @@ The specified config file is loaded via `require()` and so can be a `.js` or a `
 
 ### Lifecycle management
 
-An optional `redisNamespace` property e.g. `demo:mpush,` is used for lifecycle management as follows:
+An optional `redisNamespace` property e.g. `demo:mpush,` is used for lifecycle management, and metrics.
 
+At startup, the service will perform the following to "register" itself:
 - `incr :id` to obtain a unique service instance `id`
 - `hmset :$id` to record `{host, pid, started}` et al
 - `expire :$id $serviceExpire` but renew at an interval sufficiently less than `$serviceExpire`
 - at startup, check `:ids` for expired ids, and `lrem :ids $id`
 
+For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal period is 15 seconds.
+```
+INFO renew: started demo:mpush:9 15
+```
+So every 15 seconds, the service `:id` hashes will be re-expired to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
+
+```
+redis-cli hkeys demo:mpush:9
+1) "host"
+2) "pid"
+3) "started"
+4) "timestamp"
+```
+
 Additionally, we track activated ids as follows:
 - `lpush :ids $id`
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
+
+```
+INFO Service: registered demo:mpush:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
+```
+
+We can get the latest service id as follows:
+```
+redis-cli lrange demo:mpush:ids -1 -1
+1) "9"
+```
 
 `SIGTERM` should result in a clean shutdown:
 - `del :$id`
 - `lrem :ids -1 $id` i.e. scanning from the tail
 
-Services can be shutdown manually:
-- `lrange :ids 0 -1` to see all "active" ids
+```
+INFO Service: ended demo:mpush:9 { del: 1, lrem: 0 }
+```
+
+Test this using `kill $pid`
+```
+id=`redis-cli lrange demo:mpush:ids -1 -1`
+pid=`redis-cli hget demo:mpush:$id pid`
+kill $pid
+```
+
+Services can be shutdown manually via Redis too:
 - `del :$id` to delete the service hashes key, which should cause a shutdown
-- `lrem :ids $id`
+- `lrem :ids -1 $id`
+
+For example:
+```
+redis-cli del demo:mpush:9
+redis-cli lrem demo:mpush:ids -1 9
+```
 
 At startup, the service checks active `:ids` and removes expired services
 - if `:$id` does not exist e.g. has expired or was deleted, then `lrem :ids -1 $id`
+
+Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time, once the `:$id` hashes have expired.

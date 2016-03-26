@@ -65,7 +65,7 @@ export default class Service {
 
    async startService() {
       Asserts.assertIntMin(this.props.serviceExpire, 'serviceExpire');
-      this.id = parseInt(await this.redisClient.incrAsync(this.redisKey('service:id')));
+      this.id = parseInt(await this.redisClient.incrAsync(this.redisKey('id')));
       this.key = this.redisKey(this.id);
       this.meta = {
          host: os.hostname(),
