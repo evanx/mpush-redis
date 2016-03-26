@@ -211,7 +211,7 @@ Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor
 The "timeout monitor" performs the following:
 - `lrange :done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` (hashes)
 - `hget :$id timestamp` to get the original timestamp of a message
-- `hset :metrics:done max $max` to set peak response times
+- `hset :metrics:done max $max` to update the peak response time
 - `lrem :ids -1 $id` for garbage-collection of messages that have expired
 
 The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
