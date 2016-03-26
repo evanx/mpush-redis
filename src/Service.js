@@ -50,7 +50,7 @@ export default class Service {
       this.components = [
          new MonitorIncoming('monitor')
       ];
-      //await Promise.all(this.components.map(component => this.startComponent(component)));
+      await Promise.all(this.components.map(component => this.startComponent(component)));
       if (this.readyComponent) {
          await this.startComponent(this.readyComponent);
       }
@@ -64,7 +64,6 @@ export default class Service {
          logger: this.createLogger(name)
       });
       this.startedComponents.push(component);
-      return component;
    }
 
    async startService() {
@@ -129,7 +128,7 @@ export default class Service {
             }
          }));
       }
-      await this.delay(2000);
+      await this.delay(1000);
       if (this.redisClient) {
          const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.key);
@@ -187,7 +186,7 @@ export default class Service {
 
    async validate() {
       if (this.redisClient) {
-         const [exists] = await this.redisClient.execMultiAsync(multi => {
+         const [exists] = await this.redisClient.multiExecAsync(multi => {
             multi.exists(this.key);
          });
          if (!exists) {

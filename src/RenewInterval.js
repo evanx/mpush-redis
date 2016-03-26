@@ -9,9 +9,10 @@ export default class RenewInterval {
 
    async start(state) {
       Object.assign(this, state);
+      assert(this.props.serviceRedis, 'serviceRedis');
       this.redisClient = service.createRedisClient(this.props.serviceRedis);
       this.renewIntervalId = setInterval(() => this.run(), Invariants.props.serviceExpire.renew*1000);
-      this.logger.info('started', this.service.key, Invariants.props.serviceExpire.renew);
+      logger.info('started', this.service.key, Invariants.props.serviceExpire.renew);
    }
 
    async end() {
@@ -34,20 +35,21 @@ export default class RenewInterval {
          return;
       }
       try {
-         const [exists, timestamp, [time]] = await this.redisClient.multiExecAsync(multi => {
+         const [[time], exists, timestamp] = await this.redisClient.multiExecAsync(multi => {
+            multi.time();
             multi.exists(this.service.key);
             multi.hget(this.service.key, 'renewed');
-            multi.time();
          });
          assert(time > 0, 'time');
+         if (!exists) {
+            throw new Error(`exists ${this.service.key} ${exists}`);
+         }
          if (this.timestamp) {
-            if (!exists) {
-               throw new Error(`key ${this.service.key}`);
-            }
             if (timestamp !== this.timestamp) {
                throw new Error(`renewed ${timestamp} ${this.timestamp}`);
             }
          }
+         this.timestamp = time;
          const [expire, hset] = await this.redisClient.multiExecAsync(multi => {
             this.logger.debug('renew', this.service.key, this.timestamp, this.props.serviceExpire);
             multi.expire(this.service.key, this.props.serviceExpire);
@@ -58,8 +60,8 @@ export default class RenewInterval {
          }
       } catch (err) {
          logger.error(err);
-         this.end();
          this.service.end();
+         throw err;
       }
    }
 }

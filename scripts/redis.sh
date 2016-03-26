@@ -1,31 +1,39 @@
 
+ns='demo:mpush'
+dbn=1
+
+echo "$dbn $ns"
+
+rediscli="redis-cli -n $dbn"
+
+
 c0flush() {
-  redis-cli keys 'demo:mpush:*' | xargs -n1 redis-cli del
+  $rediscli keys "$ns:*" | xargs -n1 $rediscli del
 }
 
 c0clear() {
   for list in in pending ids out0 out1
   do
-    key="demo:mpush:$list"
-    echo "del $key" `redis-cli del $key`
+    key="$ns:$list"
+    echo "del $key" `$rediscli del $key`
   done
 }
 
 c0end() {
-  id=`redis-cli lrange demo:mpush:ids -1 -1`
+  id=`$rediscli lrange $ns:ids -1 -1`
   if [ -n "$id" ]
   then
-    key="demo:mpush:$id"
+    key="$ns:$id"
     echo "del $key"
-    redis-cli del $key
+    $rediscli del $key
   fi
 }
 
 c0kill() {
-  id=`redis-cli lrange demo:mpush:ids -1 -1`
+  id=`$rediscli lrange $ns:ids -1 -1`
   if [ -n "$id" ]
   then
-    pid=`redis-cli hget demo:mpush:$id pid`
+    pid=`$rediscli hget $ns:$id pid`
     echo "kill $pid for $id"
     kill $pid 
   fi
@@ -33,29 +41,29 @@ c0kill() {
 
 c0state() {
   echo
-  redis-cli keys 'demo:mpush*' | sort
+  $rediscli keys '$ns*' | sort
   for list in in ids pending out0 out1 
   do
-    key="demo:mpush:$list"
-    echo "llen $key" `redis-cli llen $key` '--' `redis-cli lrange $key 0 99`
+    key="$ns:$list"
+    echo "llen $key" `$rediscli llen $key` '--' `$rediscli lrange $key 0 99`
   done
-  id=`redis-cli lrange demo:mpush:ids -1 -1`
+  id=`$rediscli lrange $ns:ids -1 -1`
   if [ -n "$id" ]
   then
-    echo "hgetall demo:mpush:$id"
-    redis-cli hgetall demo:mpush:$id
+    echo "hgetall $ns:$id"
+    $rediscli hgetall $ns:$id
   fi
 }
 
 c1push() {
-  redis-cli lpush "demo:mpush:in" $1
+  $rediscli lpush "$ns:in" $1
   sleep .1
   c0state
 }
 
 c0default() {
-  redis-cli lpush "demo:mpush:in" one
-  redis-cli lpush "demo:mpush:in" two
+  $rediscli lpush "$ns:in" one
+  $rediscli lpush "$ns:in" two
   sleep .1
   c0state
 }

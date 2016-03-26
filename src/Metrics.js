@@ -8,7 +8,7 @@ export default class Metrics {
    async start(state) {
       Object.assign(this, state);
       this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'redisNamespace');
-      this.redisClient = service.createRedisClient(this.props.redis);
+      this.redisClient = service.createRedisClient(Asserts.assert(this.props.serviceRedis, 'serviceRedis'));
       this.logger.info('start');
    }
 
