@@ -5,6 +5,7 @@ global.bunyan = require('bunyan');
 global.fs = require('fs');
 global.http = require('http');
 global.lodash = require('lodash');
+global.os = require('os');
 global.redisLib = require('redis');
 
 bluebird.promisifyAll(redisLib.RedisClient.prototype);

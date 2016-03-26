@@ -68,6 +68,7 @@ export default class Service {
       this.id = parseInt(await this.redisClient.incrAsync(this.redisKey('service:id')));
       this.key = this.redisKey(this.id);
       this.meta = {
+         host: os.hostname(),
          pid: process.pid,
          started: this.startTimestamp
       };
