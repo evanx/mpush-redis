@@ -128,6 +128,7 @@ redis-cli hkeys demo:mpush:9
 3) "started"
 4) "renewed"
 ```
+The `renewed` field above, is the heartbeat timestamp.
 
 Incidently, if a service fails to renew its hashes, then it must exit. This provides a mechanism to terminate the service "remotely" via Redis, albeit not very gracefully. Anyway, we consider Redis as the "source of truth" and so if the service does not exist in Redis, then it cannot exist. An alternative to expiry/renewal, would require a heartbeat timestamp for cleaning up zombie service data, and after cleaning up said that, that zombie process must detect that, and exit rather than trying anything funny.
 
