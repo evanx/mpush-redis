@@ -119,7 +119,7 @@ For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal
 ```
 INFO renew: started demo:mpush:9 15
 ```
-So every 15 seconds, expiry of the service `:id` hashes will be renewed to a TTL of 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
+So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
 
 ```
 redis-cli hkeys demo:mpush:9
@@ -128,6 +128,8 @@ redis-cli hkeys demo:mpush:9
 3) "started"
 4) "renewed"
 ```
+
+Incidently, if a service fails to renew its hashes, then it must exit. This provides a mechanism to terminate the service "remotely" via Redis, albeit not very gracefully. Anyway, we consider Redis as the "source of truth" and so if the service does not exist in Redis, then it cannot exist. An alternative to expiry/renewal, would require a heartbeat timestamp for cleaning up zombie service data, and after cleaning up said that, that zombie process must detect that, and exit rather than trying anything funny.
 
 Additionally, we track activated ids as follows:
 - `lpush :ids $id`
