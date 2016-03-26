@@ -31,7 +31,7 @@ This is a "microservice" not least by the metric that it was initially developed
 
 The over-arching goal is to implement many common integration patterns, for the purpose of composing Redis-based microservices.
 
-The power of a system is greater than the sum of its parts when those are composable.
+The power of a system is far greater than the sum of its parts - when those are composable.
 
 
 ### Implementation
@@ -141,7 +141,7 @@ Additionally, we track activated ids as follows:
 
 Services can be shutdown manually:
 - `lrange :ids 0 -1` to see all "active" ids
-- `del :$id` to delete the service key, which should cause a shutdown
+- `del :$id` to delete the service hashes key, which should cause a shutdown
 - `lrem :ids $id`
 
 At startup, the service checks active `:ids` and removes expired services
