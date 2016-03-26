@@ -209,7 +209,7 @@ The worker microservice which actually handles the message, pushes its id into a
 Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor sufficient time to detect timeouts.
 
 The "timeout monitor" performs the following:
-- `lrange :done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` hashes
+- `lrange :done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` (hashes)
 - `hget :$id timestamp` to get the original timestamp of a message
 - `hset :metrics:done max $max` to set peak response times
 - `lrem :ids -1 $id` for garbage-collection of messages that have expired
