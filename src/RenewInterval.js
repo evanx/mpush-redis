@@ -25,6 +25,7 @@ export default class RenewInterval {
 
    async run() {
       try {
+         await this.service.validate();
          this.timestamp = (await this.redisClient.timeAsync())[0];
          const [expire, hset] = await this.redisClient.multiExecAsync(multi => {
             this.logger.debug('renew', this.service.key, this.timestamp, this.props.serviceExpire);
