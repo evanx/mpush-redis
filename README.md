@@ -29,17 +29,22 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 
 The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
 
-- vpush - transport messages to a remote Redis instance
-- mdispatch - tracking messages for response handling, e.g. building a distrbuted web server
-- mbalance - push a message to a work queue with the lowest back-pressure (length)
-- himporter - import an HTTP request into a Redis queue for subsequent routing and processing
-- hrouter - route an HTTP message by matching its URL (using regex)
-- sregister - service self-registration for service discovery
-- sdeploy - service orchestration
+- v-push - transport messages to a remote Redis instance
+- m-dispatch - tracking messages for response handling, e.g. building a distrbuted web server
+- m-balance - push a message to a work queue with the lowest queue length
+- s-register - service self-registration for service discovery
+- c-scale - service orchestration triggered by Redis-based messaging
+- h-importer - import an HTTP request into a Redis queue for subsequent routing and processing
+- h-router - route an HTTP message by matching its URL (using regex)
+- h-assets - static webserver for serving assets
+- h-react - render a React template
+- r-query - retrieve application data from Redis
 
-My "holy grail" would be a load-balancing, auto-scaling distributed webserver, implemented relatively simply by leveraging Redis for persistent message storage, shared memory/state and synchronised data access.
+While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis. I favour JavaScript, in particular ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
 
-While Node.js might not be as performant as Go, we benefit from the performance of Redis, and the accessibility and productivity of JavaScript - in particular ES6 with arrow functions, and ES2016 for async/await sugaring of ES6 promises/generators.
+My "holy grail" would be a resilient auto-scaling distributed webserver. This can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and service orchestration.
+
+I'm interested in applying this to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
 
 
 ### Implementation
