@@ -32,22 +32,20 @@ export default class Service {
       }
       this.logger.info('start', this.props);
       this.assertProps();
-      this.redisClient = this.createRedisClient(this.props.redis);
-      const redisTime = await this.redisClient.timeAsync();
-      this.startTimestamp = parseInt(redisTime[0]);
-      if (this.props.redisNamespace) {
-         if (this.props.serviceRedis) {
-            this.serviceRedisClient = this.createRedisClient(this.props.serviceRedis);
-         } else {
-            this.serviceRedisClient = this.createRedisClient(this.props.redis);
-         }
-         Asserts.assertString(this.props.redisNamespace, 'redisNamespace');
-         this.metrics = new Metrics('metrics');
+      if (this.props.serviceNamespace) {
+         assert(this.props.serviceRedis, 'serviceRedis');
+         this.redisClient = this.createRedisClient(this.props.serviceRedis);
+         const redisTime = await this.redisClient.timeAsync();
+         this.startTimestamp = parseInt(redisTime[0]);
+         Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
+         this.metrics = new Metrics('metrics', this.props.serviceRedis);
          await this.startComponent(this.metrics);
          this.metrics.count('run');
          await this.startService();
       } else {
-         this.logger.info('started', this.timestamp);
+         const redisClient = this.createRedisClient(this.props.redis);
+         const redisTime = await redisClient.timeAsync();
+         this.startTimestamp = parseInt(redisTime[0]);
       }
       this.components = [
          new MonitorIncoming('monitor')
@@ -56,6 +54,7 @@ export default class Service {
       if (this.readyComponent) {
          await this.startComponent(this.readyComponent);
       }
+      this.logger.info('started', this.startTimestamp);
    }
 
    async startComponent(component) {
@@ -131,16 +130,15 @@ export default class Service {
          }));
       }
       await this.delay(2000);
-      const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
-         multi.del(this.key);
-         multi.lrem(this.redisKey('service:ids'), -1, this.id);
-      });
       if (this.redisClient) {
+         const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
+            multi.del(this.key);
+            multi.lrem(this.redisKey('service:ids'), -1, this.id);
+         });
          await this.redisClient.quitAsync();
-      }
-      this.logger.info('ended', this.key, {del, lrem});
-      if (this.serviceRedisClient) {
-         await this.serviceRedisClient.quitAsync();
+         this.logger.info('ended', this.key, {del, lrem});
+      } else {
+         this.logger.info('ended');
       }
       process.exit(0);
    }
@@ -183,17 +181,16 @@ export default class Service {
    }
 
    redisKey(...values) {
-      Asserts.assertString(this.props.redisNamespace, 'redisNamespace');
-      return [this.props.redisNamespace, ...values].join(':');
+      Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
+      return [this.props.serviceNamespace, ...values].join(':');
    }
 
    async validate() {
-      if (this.serviceRedisClient) {
-         const [exists] = await this.serviceRedisClient.execMultiAsync(multi => {
+      if (this.redisClient) {
+         const [exists] = await this.redisClient.execMultiAsync(multi => {
             multi.exists(this.key);
          });
          if (!exists) {
-            await this.end();
             throw new Error('key: ' + this.key);
          }
       }

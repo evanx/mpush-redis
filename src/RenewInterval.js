@@ -9,12 +9,17 @@ export default class RenewInterval {
 
    async start(state) {
       Object.assign(this, state);
-      this.redisClient = service.createRedisClient(this.props.redis);
+      this.redisClient = service.createRedisClient(this.props.serviceRedis);
       this.renewIntervalId = setInterval(() => this.run(), Invariants.props.serviceExpire.renew*1000);
       this.logger.info('started', this.service.key, Invariants.props.serviceExpire.renew);
    }
 
    async end() {
+      if (this.ended) {
+         logger.warn('end: ended');
+         return;
+      }
+      this.ended = true;
       if (this.renewIntervalId) {
          clearInterval(this.renewIntervalId);
       }
@@ -24,20 +29,37 @@ export default class RenewInterval {
    }
 
    async run() {
+      if (this.ended) {
+         logger.warn('run: ended');
+         return;
+      }
       try {
-         await this.service.validate();
-         this.timestamp = (await this.redisClient.timeAsync())[0];
+         const [exists, timestamp, [time]] = await this.redisClient.multiExecAsync(multi => {
+            multi.exists(this.service.key);
+            multi.hget(this.service.key, 'renewed');
+            multi.time();
+         });
+         assert(time > 0, 'time');
+         if (this.timestamp) {
+            if (!exists) {
+               throw new Error(`key ${this.service.key}`);
+            }
+            if (timestamp !== this.timestamp) {
+               throw new Error(`renewed ${timestamp} ${this.timestamp}`);
+            }
+         }
          const [expire, hset] = await this.redisClient.multiExecAsync(multi => {
             this.logger.debug('renew', this.service.key, this.timestamp, this.props.serviceExpire);
             multi.expire(this.service.key, this.props.serviceExpire);
             multi.hset(this.service.key, 'renewed', this.timestamp);
          });
          if (!expire) {
-            this.logger.error('renew', this.service.key);
-            this.service.end();
+            throw new Error(`renew ${this.service.key}`);
          }
       } catch (err) {
-         this.logger.error('renew', err);
+         logger.error(err);
+         this.end();
+         this.service.end();
       }
    }
 }

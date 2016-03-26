@@ -23,11 +23,8 @@ export default class MonitorIncoming {
             await this.pop();
          } catch (err) {
             this.logger.warn(err);
-            if (process.env.NODE_ENV === 'development') {
-               this.ended = true;
-            } else {
-               await this.service.delay(2000);
-            }
+            this.ended = true;
+            this.service.end();
          }
       }
       await this.redisClient.quitAsync();
