@@ -34,9 +34,10 @@ export default class MonitorIncoming {
    }
 
    async pop() {
+      await this.service.validate();
       if (this.ended) {
          this.logger.warn('ended');
-         return null;
+         return;
       }
       this.logger.debug('brpoplpush', this.props.in, this.props.pending, this.props.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.props.in, this.props.pending, this.props.popTimeout);

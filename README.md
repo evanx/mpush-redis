@@ -132,7 +132,7 @@ The `renewed` field above, is the heartbeat timestamp.
 
 Suffice it to say that if a service fails to renew its hashes, i.e. it's heartbeat monitor fails, then it must exit.
 
-Incidently, services should perform a startup check that its hashes key does not exist, 
+Incidently, services should perform a startup assert that its hashes key does not exist, as a sanity check.
 
 Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
