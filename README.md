@@ -130,7 +130,6 @@ At startup, the service will perform the following to "register" itself:
 - `incr :id` to obtain a unique service instance `id`
 - `hmset :$id` to record `{host, pid, started}` et al
 - `expire :$id $serviceExpire` but renew at an interval sufficiently less than `$serviceExpire`
-- at startup, check `:ids` for expired ids, and `lrem :ids $id`
 
 For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal period is 15 seconds.
 ```
