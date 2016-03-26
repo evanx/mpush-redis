@@ -30,7 +30,7 @@ Moving messages to a remote Redis instance, is a different problem, e.g. we want
 The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
 
 - v-push - transport messages to a remote Redis instance
-- m-dispatch - tracking messages for response handling, e.g. building a distrbuted web server
+- m-dispatch - tracking messages for response handling, e.g. building a distributed web server
 - m-balance - push a message to a work queue with the lowest queue length
 - s-register - service self-registration for service discovery
 - c-scale - service orchestration triggered by Redis-based messaging
