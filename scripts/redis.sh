@@ -37,7 +37,7 @@ c0state() {
   for list in in ids pending out0 out1 
   do
     key="demo:mpush:$list"
-    echo "llen $key" `redis-cli llen $key` `redis-cli lrange $key 0 99`
+    echo "llen $key" `redis-cli llen $key` '--' `redis-cli lrange $key 0 99`
   done
   id=`redis-cli lrange demo:mpush:ids -1 -1`
   if [ -n "$id" ]

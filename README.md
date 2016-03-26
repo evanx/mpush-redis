@@ -142,7 +142,7 @@ redis-cli hkeys demo:mpush:9
 1) "host"
 2) "pid"
 3) "started"
-4) "timestamp"
+4) "renewed"
 ```
 
 Additionally, we track activated ids as follows:
