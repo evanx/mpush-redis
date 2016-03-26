@@ -119,7 +119,7 @@ For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal
 ```
 INFO renew: started demo:mpush:9 15
 ```
-So every 15 seconds, the service `:id` hashes will be re-expired to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
+So every 15 seconds, expiry of the service `:id` hashes will be renewed to a TTL of 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
 
 ```
 redis-cli hkeys demo:mpush:9
