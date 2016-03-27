@@ -44,7 +44,9 @@ export default class MessagePending {
       if (!id) {
          await this.service.delay(800);
       } else {
-         this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
+         if (timestamp % 10 === 0) {
+            this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
+         }
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
          if (!meta) {
             this.components.metrics.count('message:expire', id);
@@ -54,7 +56,7 @@ export default class MessagePending {
          const deadline = Invariants.ensureTimestamp(meta.deadline, 'deadline');
          if (timestamp < deadline) {
             if (timestamp % 10 === 0) {
-               this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
+               this.logger.debug('removed', {id, meta, deadline});
             }
          } else {
             const timeout = timestamp - deadline;
@@ -63,7 +65,7 @@ export default class MessagePending {
                multi.del(this.redisKey(id));
                multi.lrem(listKey, -1, id);
             });
-            this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
+            this.logger.debug('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
             return;
          }
       }
