@@ -165,7 +165,7 @@ For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal
 ```
 INFO renew: started demo:mpush:service:9 15
 ```
-So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
+So every 15 seconds, the TTL of the `:service:id` hashes will be renewed to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
 
 ```
 redis-cli ttl demo:mpush:service:9
@@ -184,7 +184,7 @@ The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if
 
 Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
-- `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
+- `ltrim :ids 0 $serviceCapacity` to ensure that `:service:ids` is bounded.
 
 ```
 INFO Service: registered demo:mpush:service:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
@@ -240,11 +240,11 @@ redis-cli del demo:mpush:service:9
 
 At startup, the service instance must perform garbage-collection on behalf of other expired instances in the same `serviceNamespace.`
 
-In particular, the service compacts the listed active `:ids` as follows.
+In particular, the service compacts the listed `:service:ids` as follows.
 - iterate over `:service:ids`
-- if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
+- if any `:service:$id` does not exist, i.e. has expired or was deleted, then `lrem :service:ids -1 $id`
 
-Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time.
+Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:service:ids` list automatically at a later time.
 
 Let's illustrate this process. Firstly, we iterate over `:service:ids`
 ```
@@ -276,11 +276,11 @@ Further efforts will be taken, as follows:
 ### Message tracking for timeouts and retries
 
 A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
-- `incr :id` to obtain a sequential unique message `$id`
-- `exists :$id` to check that the message key does not exist.
-- `hmset :$id {fields}` for meta info
-- `expire :$id $messageExpire` for automatic "garbage-collection"
-- `lpush :ids $id` to register the new active `$id`
+- `incr :message:id` to obtain a sequential unique message `$id`
+- `exists :message:$id` to check that the message key does not exist.
+- `hmset :message:$id {fields}` for meta info
+- `expire :message:$id $messageExpire` for automatic "garbage-collection"
+- `lpush :message:ids $id` to register the new active `$id`
 
 Before we push a message, let's check the current sequential `:message:id`
 ```
@@ -343,7 +343,7 @@ redis-cli hgetall demo:mpush:message:xid:12345
 ```
 where the `type` indicates the incoming message itself was a number, i.e. `12345.`
 
-This enables the downstream subscriber service which processes this message, to lookup its `id` in order to push it into `:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
+This enables the downstream subscriber service which processes this message, to lookup its `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
 ```
 redis-cli -n 1 hgetall demo:mpush:metrics:timeout
@@ -359,25 +359,25 @@ We require processors to monitor:
 #### Expire monitor
 
 The "expired monitor" performs the following garbage-collection:
-- `lrange :ids 0 -1` and for each, `exists :$id` to detect expired messages
-- `lrem :ids -1 $id` to remove a expired an `id` from the `:ids` list
+- `lrange :message:ids 0 -1` and for each, `exists :message:$id` to detect expired messages
+- `lrem :message:ids -1 $id` to remove a expired an `id` from the `:message:ids` list
 
 
 #### Timeout monitor
 
-The `:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
+The `:message:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
 
-The worker microservice which actually handles the message, pushes its id into a `:done` list. This list is monitored by our Redis microservice, to detect timeouts i.e. not "done" after the `messageTimeout` period.
+The worker microservice which actually handles the message, pushes its id into a `:message:done` list. This list is monitored by our Redis microservice, to detect timeouts i.e. not "done" after the `messageTimeout` period.
 
 Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor sufficient time to detect timeouts.
 
 The "timeout monitor" performs the following:
-- `lrange :done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` (hashes)
-- `hget :$id timestamp` to get the original timestamp of a message
+- `lrange :message:done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` (hashes)
+- `hget :message:$id timestamp` to get the original timestamp of a message
 - `hset :metrics:done max $max` to update the peak response time
-- `lrem :ids -1 $id` to delist expired message ids
+- `lrem :message:ids -1 $id` to delist expired message ids
 
-The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
+The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:message:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
 
 
 ### Metrics
