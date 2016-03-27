@@ -182,7 +182,7 @@ redis-cli hkeys demo:mpush:service:9
 ```
 The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if a service fails to renew its hashes, i.e. its heartbeat fails, then it must exit. Incidently, services should perform a startup assert that its key does not exist. The service should routinely ensure the existence of its key, e.g. before its `brpoplpush` operation, and otherwise exit. As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
 
-Additionally, we enlist activated ids as follows:
+Additionally, we enlist registered ids as follows:
 - `lpush :ids $id`
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:service:ids` is bounded.
 
@@ -284,7 +284,7 @@ A similar mechanism as that described above for tracking services, is used for t
 - `exists :message:$id` to check that the message key does not exist.
 - `hmset :message:$id {fields}` for meta info
 - `expire :message:$id $messageExpire` for automatic "garbage-collection"
-- `lpush :message:ids $id` to register the new active `$id`
+- `lpush :message:ids $id` to register the new `$id`
 
 Before we push a message, let's check the current sequential `:message:id`
 ```
