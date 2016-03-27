@@ -114,9 +114,6 @@ evanx@eowyn:~/mpush-redis$ propsFile=~/config/mpush-redis.js npm start
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
 
-```shell
-evans@eowyn:~/mpush-redis$ cat ~/config/mpush-redis.js
-```
 For example the following configuration specifies a `serviceRedis` and `serviceNamespace` to enable "advanced" features e.g. service registration, message timeouts, and other metrics.
 
 ```javascript
