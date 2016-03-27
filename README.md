@@ -114,6 +114,28 @@ evanx@eowyn:~/mpush-redis$ propsFile=~/config/mpush-redis.js npm start
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
 
+```shell
+evans@eowyn:~/mpush-redis$ cat ~/config/mpush-redis.js
+```
+
+```javascript
+module.exports = {
+   redis: 'redis://localhost:6379/1',
+   serviceRedis: 'redis://localhost:6379/1',
+   serviceNamespace: 'demo:mpush',
+   serviceExpire: 60,
+   serviceRenew: 10,
+   serviceCapacity: 10,
+   popTimeout: 10,
+   messageExpire: 30,
+   messageTimeout: 10,
+   messageCapacity: 1000,
+   in: 'demo:mpush:in',
+   pending: 'demo:mpush:pending',
+   done: 'demo:mpush:done',
+   out: ['demo:mpush:out0', 'demo:mpush:out1']
+};
+```
 
 ### Lifecycle management
 
