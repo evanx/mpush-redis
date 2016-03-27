@@ -31,8 +31,8 @@ export default class ServiceRenew {
    }
 
    async run() {
-      if (this.ended) {
-         logger.warn('run: ended');
+      if (this.ended || this.service.ended) {
+         logger.warn('run: ended', this.ended, this.service.ended);
          return;
       }
       try {
@@ -43,7 +43,7 @@ export default class ServiceRenew {
          });
          assert(time > 0, 'time');
          if (!exists) {
-            throw new Error(`exists ${this.service.key} ${exists}`);
+            throw `exists ${this.service.key} ${exists}`;
          }
          if (this.timestamp) {
             if (timestamp !== this.timestamp) {
@@ -57,12 +57,10 @@ export default class ServiceRenew {
             multi.hset(this.service.key, 'renewed', this.timestamp);
          });
          if (!expire) {
-            throw new Error(`renew ${this.service.key}`);
+            throw `renew ${this.service.key}`;
          }
       } catch (err) {
-         logger.error(err);
-         this.service.end();
-         throw err;
+         this.service.error(this, err);
       }
    }
 }

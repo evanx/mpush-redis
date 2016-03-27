@@ -158,6 +158,9 @@ Note that the `service*` and `message*` props are only required if the `serviceN
 
 An optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.
 
+This can be complemented with an optional `serviceRedis` URL, for the related keys. Otherwise they are stored in the default Redis database, i.e. the same instance as the target `:in` and `:out` queues.
+
+
 #### Registration and renewal
 
 At startup, the service will perform the following Redis commands to "register" itself:
@@ -354,7 +357,6 @@ I believe that Redis, Node, ES2016, React and stateless microservices are relati
 My "stretch goal" would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring and service orchestration.
 
 I'd interested in applying that to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
-
 
 
 ### Further reading

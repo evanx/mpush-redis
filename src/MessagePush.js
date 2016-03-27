@@ -1,5 +1,5 @@
 
-export default class MonitorIncoming {
+export default class MessagePush {
 
    constructor(name) {
       this.name = name;
@@ -18,17 +18,18 @@ export default class MonitorIncoming {
 
    async run() {
       this.logger.info('run');
-      while (!this.ended) {
+      while (!this.ended && !this.service.ended) {
          try {
-            await this.service.validate();
-            await this.pop();
-            await this.service.delay(1000);
+            if (!this.service.ended) {
+               await this.service.validate();
+               await this.pop();
+            }
          } catch (err) {
-            this.logger.error(err);
-            this.ended = true;
-            this.service.end();
+            this.service.error(this, err);
+            break;
          }
       }
+      this.ended = true;
       return this.redisClient.quitAsync();
    }
 
@@ -41,6 +42,9 @@ export default class MonitorIncoming {
          this.props.out.forEach(out => multi.lpush(out, message));
          multi.lrem(this.props.pending, -1, message);
          await multi.execAsync();
+         if (this.components.messageRegister) {
+            await this.components.messageRegister.registerMessage(message);
+         }
       }
    }
 }

@@ -20,6 +20,14 @@ c0clear() {
   done
 }
 
+c0metrics() {
+  for key in `$rediscli keys "${ns}:metrics:*" | sort`
+  do
+    echo; echo "$key"
+    $rediscli hgetall $key 
+  done 
+}
+
 c0end() {
   id=`$rediscli lrange $ns:ids -1 -1`
   if [ -n "$id" ]
@@ -42,7 +50,16 @@ c0kill() {
 
 c0state() {
   echo
-  $rediscli keys '$ns*' | sort
+  for key in `$rediscli keys "${ns}:*" | sort`
+  do
+    ttl=`$rediscli ttl $key | grep ^[0-9]`
+    if [ -n "$ttl" ]
+    then
+      echo $key "-- ttl $ttl"
+    else
+      echo $key
+    fi
+  done
   for list in in ids pending out0 out1 
   do
     key="$ns:$list"

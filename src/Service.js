@@ -8,9 +8,10 @@ import redisLib from 'redis';
 
 import Demo from '../demo/Demo';
 
-import MonitorIncoming from './MonitorIncoming';
-import MonitorPending from './MonitorPending';
-import MonitorDone from './MonitorDone';
+import MessagePush from './MessagePush';
+import MessagePending from './MessagePending';
+import MessageDone from './MessageDone';
+import MessageRegister from './MessageRegister';
 import Metrics from './Metrics';
 import ServiceRenew from './ServiceRenew';
 
@@ -36,41 +37,79 @@ export default class Service {
       this.logger.info('start', this.props);
       this.assertProps();
       Invariants.validateProps(this.props);
-      this.components = [new MonitorIncoming('monitor')];
-      if (this.props.serviceNamespace) {
-         assert(this.props.serviceRedis, 'serviceRedis');
-         this.redisClient = this.createRedisClient(this.props.serviceRedis);
-         const redisTime = await this.redisClient.timeAsync();
-         this.startTimestamp = parseInt(redisTime[0]);
-         Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
-         this.metrics = new Metrics('metrics', this.props.serviceRedis);
-         await this.startComponent(this.metrics);
-         this.metrics.count('run');
-         await this.startService();
-         this.components.push(new MonitorPending('pending'));
-         this.components.push(new MonitorDone('done'));
-      } else {
-         const redisClient = this.createRedisClient(this.props.redis);
-         const redisTime = await redisClient.timeAsync();
-         this.startTimestamp = parseInt(redisTime[0]);
-      }
-      await Promise.all(this.components.map(component => this.startComponent(component)));
+      this.requiredComponents = [];
+      await this.initRequiredComponents('mpush');
+      this.requiredComponents.push(new MessagePush('messagePush'));
       if (this.readyComponent) {
-         await this.startComponent(this.readyComponent);
+         this.requiredComponents.push(this.readyComponent);
+      }
+      this.components = {};
+      logger.info('requiredComponents', this.requiredComponents.length);
+      for (const component of this.requiredComponents) {
+         await this.startComponent(component);
+      }
+      logger.info('started components', Object.keys(this.components));
+      if (this.components.metrics) {
+         this.components.metrics.count('start');
       }
       this.logger.info('started', this.startTimestamp);
+   }
+
+   async initRequiredComponents(name) {
+      if (name === 'mpush') {
+         if (this.props.serviceNamespace) {
+            await this.startService();
+            this.requiredComponents.push(new Metrics('metrics'));
+            this.requiredComponents.push(new MessageRegister('messageRegister'));
+            this.requiredComponents.push(new MessagePending('messagePending'));
+            this.requiredComponents.push(new MessageDone('messageDone'));
+            this.requiredComponents.push(new ServiceRenew('serviceRenew'));
+         } else {
+            const redisClient = this.createRedisClient(this.props.redis);
+            const redisTime = await redisClient.timeAsync();
+            this.startTimestamp = parseInt(redisTime[0]);
+         }
+      } else {
+         assert(false, 'service name: ' + name);
+      }
+      this.name = name;
    }
 
    async startComponent(component) {
       assert(component.name, 'component name');
       const name = component.name;
-      await component.start({name, props: this.props, service: this, metrics: this.metrics,
+      logger.info('startComponent', component.name);
+      await component.start({name,
          logger: this.createLogger(name),
+         props: this.props,
+         components: this.components,
+         service: this
       });
       this.startedComponents.push(component);
+      this.components[component.name] = component;
+   }
+
+   async error(component, err) {
+      if (!this.ended) {
+         logger.error(component.name, err);
+         console.error(err);
+         if (this.components.metrics) {
+            if (this.components.metrics !== component) {
+               await this.components.metrics.count('error', component.name);
+            }
+         }
+         this.end();
+      } else {
+         logger.warn(component.name, err);
+      }
    }
 
    async startService() {
+      assert(this.props.serviceRedis, 'serviceRedis');
+      this.redisClient = this.createRedisClient(this.props.serviceRedis);
+      const redisTime = await this.redisClient.timeAsync();
+      this.startTimestamp = parseInt(redisTime[0]);
+      Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
       Asserts.assertIntMin(this.props.serviceExpire, 'serviceExpire');
       this.id = parseInt(await this.redisClient.incrAsync(this.redisKey('id')));
       this.key = this.redisKey(this.id);
@@ -88,11 +127,9 @@ export default class Service {
          multi.ltrim(this.redisKey('ids'), 0, this.props.serviceCapacity - 1);
       });
       if (ids.length) {
-         this.checkServices(ids);
+         await this.checkServices(ids);
       }
       assert.equal(expire, 1, {expire: this.key});
-      this.serviceRenew = new ServiceRenew('renew');
-      await this.startComponent(this.serviceRenew);
       this.logger.info('registered', this.key, this.meta);
    }
 
@@ -115,6 +152,11 @@ export default class Service {
    }
 
    async end() {
+      if (this.ended) {
+         logger.warn('end: ended');
+         return;
+      }
+      this.ended = true;
       setTimeout(async => {
          this.logger.error('force exit');
          this.delay(1000);
@@ -122,15 +164,14 @@ export default class Service {
       }, Invariants.props.popTimeout.max*1000);
       if (this.startedComponents.length) {
          this.startedComponents.reverse();
-         await Promise.all(this.startedComponents.map(async (component, index) => {
+         for (const component of this.startedComponents) {
             try {
-               await this.delay(index*250);
                await component.end();
                this.logger.info('end component', component.name);
             } catch (err) {
-               this.logger.error('end component', component.name);
+               this.logger.error('end component', component.name, err);
             }
-         }));
+         }
       }
       await this.delay(1000);
       if (this.redisClient) {
@@ -188,13 +229,20 @@ export default class Service {
       return [this.props.serviceNamespace, ...values].join(':');
    }
 
+   sha1(content) {
+      let sha1 = crypto.createHash('sha1');
+      sha1.update(new Buffer(content));
+      return sha1.digest('hex');
+   }
+
    async validate() {
       if (this.redisClient) {
+         assert(this.key);
          const [exists] = await this.redisClient.multiExecAsync(multi => {
             multi.exists(this.key);
          });
          if (!exists) {
-            throw 'key: ' + this.key;
+            throw 'expired: ' + this.key;
          }
       }
    }

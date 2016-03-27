@@ -2,6 +2,7 @@
 global.assert = require('assert');
 global.bluebird = require('bluebird');
 global.bunyan = require('bunyan');
+global.crypto = require('crypto');
 global.fs = require('fs');
 global.http = require('http');
 global.lodash = require('lodash');

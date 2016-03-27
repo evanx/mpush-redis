@@ -1,5 +1,5 @@
 
-export default class MonitorDone {
+export default class MessageDone {
 
    constructor(name) {
       this.name = name;
@@ -13,23 +13,21 @@ export default class MonitorDone {
    }
 
    async end() {
-      this.ended = true;
       return this.runPromise;
    }
 
    async run() {
       this.logger.info('run');
-      while (!this.ended) {
+      while (!this.ended && !this.service.ended) {
          try {
             await this.service.validate();
             await this.popDone();
-            await this.service.delay(1000);
          } catch (err) {
-            this.logger.error(err);
-            this.ended = true;
-            this.service.end();
+            this.service.error(this, err);
+            break;
          }
       }
+      this.ended = true;
       return this.redisClient.quitAsync();
    }
 
@@ -39,8 +37,10 @@ export default class MonitorDone {
          multi.rpop(this.props.done);
          multi.llen(this.props.done);
       });
-      this.logger.debug('rpop', this.props.done, timestamp, id, length);
-      if (id) {
+      if (!id) {
+         await this.service.delay(500);
+      } else {
+         this.logger.debug('rpop', this.props.done, timestamp, id, length);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
          if (!meta) {
             return this.popDone();

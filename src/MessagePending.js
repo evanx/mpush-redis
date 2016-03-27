@@ -1,5 +1,5 @@
 
-export default class MonitorPending {
+export default class MessagePending {
 
    constructor(name) {
       this.name = name;
@@ -13,23 +13,24 @@ export default class MonitorPending {
    }
 
    async end() {
-      this.ended = true;
       return this.runPromise;
    }
 
    async run() {
       this.logger.info('run');
-      while (!this.ended) {
+      while (!this.ended && !this.service.ended) {
          try {
-            await this.service.validate();
-            await this.peekPending();
+            if (!this.service.ended) {
+               await this.service.validate();
+               await this.peekPending();
+            }
             await this.service.delay(1000);
          } catch (err) {
-            this.logger.error(err);
-            this.ended = true;
-            this.service.end();
+            this.service.error(this, err);
+            break;
          }
       }
+      this.ended = true;
       return this.redisClient.quitAsync();
    }
 
@@ -41,11 +42,13 @@ export default class MonitorPending {
          multi.llen(listKey);
       });
       this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
-      if (id) {
+      if (!id) {
+         await this.service.delay(2000);
+      } else {
          if (length < this.props.messageCapacity*2/3) {
             const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
             if (!meta) {
-               this.metrics.count('expired', id);
+               this.components.metrics.count('expired', id);
                await this.redisClient.lremAsync(listKey, -1, id);
                return this.peekPending();
             }

@@ -7,7 +7,7 @@ export default class Metrics {
 
    async start(state) {
       Object.assign(this, state);
-      this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'redisNamespace');
+      this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'serviceNamespace');
       this.redisClient = service.createRedisClient(Asserts.assert(this.props.serviceRedis, 'serviceRedis'));
       this.logger.info('start');
    }
@@ -20,12 +20,14 @@ export default class Metrics {
    async count(name, ...args) {
       try {
          const hashesKey = this.redisKey(name);
-         this.logger.debug('counter', name, args);
-         this.redisClient.multiExecAsync(multi => {
+         this.logger.debug('counter', name, hashesKey, args);
+         await this.redisClient.multiExecAsync(multi => {
+            logger.debug('count', hashesKey);
             multi.hincrby(hashesKey, 'count', 1);
+            multi.hset(hashesKey, 'last', JSON.stringify(args));
          });
       } catch (err) {
-         logger.warn('count', name, err);
+         this.service.error(this, err);
       }
    }
 
@@ -42,7 +44,23 @@ export default class Metrics {
             }
          });
       } catch (err) {
-         logger.warn('sum', name, err);
+         this.service.error(this, err);
+      }
+   }
+
+   async max(name, value, ...args) {
+      try {
+         const hashesKey = this.redisKey(name);
+         const max = await this.redisClient.hgetAsync(hashesKey, 'max');
+         this.logger.debug('done', name, value, args);
+         this.redisClient.multiExecAsync(multi => {
+            multi.hincrby(hashesKey, 'count', 1);
+            if (!max || value > max) {
+               multi.hset(hashesKey, 'max', value);
+            }
+         });
+      } catch (err) {
+         this.service.error(this, err);
       }
    }
 
