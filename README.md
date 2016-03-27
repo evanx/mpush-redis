@@ -333,7 +333,7 @@ where `xid` is the "extracted" intrinsic id of the message as follows:
 - failing the above, the SHA1 hash of the message as the `xid`
 
 
-We set a cross-referencing key for a subscriber service instance to lookup the message id:
+We set a cross-referencing key for a subscriber worker to lookup the message id:
 ```
 redis-cli hgetall demo:mpush:message:xid:12345
 1) "id"
@@ -343,7 +343,7 @@ redis-cli hgetall demo:mpush:message:xid:12345
 ```
 where the `type` indicates the incoming message itself was a number, i.e. `12345.`
 
-This enables the downstream subscriber service which processes this message, to lookup its `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
+This enables a subscriber worker to lookup its `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
 ```
 redis-cli -n 1 hgetall demo:mpush:metrics:timeout
