@@ -51,9 +51,12 @@ export default class MessagePending {
             await this.redisClient.lremAsync(listKey, -1, id);
             return;
          }
-         assert(meta.deadline, 'deadline');
-         const deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
-         if (deadline && timestamp > deadline) {
+         const deadline = Invariants.ensureTimestamp(meta.deadline, 'deadline');
+         if (timestamp < deadline) {
+            if (timestamp % 10 === 0) {
+               this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
+            }
+         } else {
             const timeout = timestamp - deadline;
             this.components.metrics.sum('timeout', timeout, id);
             const multiResults = await this.redisClient.multiExecAsync(multi => {
@@ -63,7 +66,6 @@ export default class MessagePending {
             this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
             return;
          }
-         this.logger.info('pending', id, meta);
       }
    }
 

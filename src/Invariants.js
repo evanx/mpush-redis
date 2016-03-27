@@ -54,6 +54,13 @@ var that = {
       }
       return that.parseTimestamp(timestamp, name) + that.parseInt(interval);
    },
+   ensureTimestamp(value, name) {
+      var timestamp = that.parseTimestamp(value, name);
+      if (!timestamp) {
+         throw new Error(`${name} timestamp`);
+      }
+      return timestamp;
+   },
    parseTimestamp(value, name) {
       var timestamp = that.parseInt(value, name);
       if (timestamp > 0 && timestamp < that.minTimestamp) {
