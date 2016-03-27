@@ -315,7 +315,7 @@ where `xid` is "extracted" id of the message as follows:
 - the SHA1 hash of the message
 
 
-Incidently, we create a cross-referencing key for the handling service to lookup the message id:
+We set a cross-referencing key for a subscriber service instance to lookup the message id:
 ```
 redis-cli get demo:mpush:message:xid:12345
 1) "id"
