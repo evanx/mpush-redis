@@ -287,11 +287,11 @@ And the `:message:$id` hashes:
 redis-cli hgetall demo:mpush:message:3
 1) "timestamp"
 2) "1459086813"
-3) "otherId"
+3) "xid"
 4) "12345"
 ```
-where `otherId` is "intrinsic" id of the message:
-- the message itself if it is a number
+where `xid` is "extracted" id of the message as follows:
+- if the message itself is a number, then take this number
 - `message.meta.id` if this exists
 - the SHA1 hash of the message
 
@@ -299,13 +299,17 @@ where `otherId` is "intrinsic" id of the message:
 async registerMessage(message) {
    const id = await this.redisClient.incrAsync(this.redisKey('id'));
    logger.debug('registerMessage', id);
-   let otherId;
+   let xid;
+   let xidMeta = {id};
    if (/^[0-9]+$/.test(message)) {
-      otherId = message;
+      xid = message;
+      xidMeta = 'number';
    } else if (message.meta && message.meta.id) {
-      otherId = message.meta.id;
+      xid = message.meta.id;
+      xidMeta = 'meta';
    } else {
-      otherId = this.service.sha1(message);
+      xid = this.service.sha1(message);
+      xidMeta = 'sha1';
    }
 ```
 
