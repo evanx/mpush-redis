@@ -92,7 +92,9 @@ export default class Service {
    async error(component, err) {
       if (!this.ended) {
          logger.error(component.name, err);
-         console.error(err);
+         if (err.stack) {
+            console.error(err.stack);
+         }
          if (this.components.metrics) {
             if (this.components.metrics !== component) {
                await this.components.metrics.count('error', component.name);
@@ -226,13 +228,15 @@ export default class Service {
 
    redisKey(...values) {
       Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
-      return [this.props.serviceNamespace, ...values].join(':');
+      return [this.props.serviceNamespace, 'service', ...values].join(':');
    }
 
-   sha1(content) {
-      let sha1 = crypto.createHash('sha1');
-      sha1.update(new Buffer(content));
-      return sha1.digest('hex');
+   sha1(string) {
+      return crypto.createHash('sha1').update(string).digest('hex');
+   }
+
+   md5(string) {
+      return crypto.createHash('md5').update(string).digest('hex');
    }
 
    async validate() {

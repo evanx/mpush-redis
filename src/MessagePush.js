@@ -38,13 +38,13 @@ export default class MessagePush {
       const message = await this.redisClient.brpoplpushAsync(this.props.in, this.props.pending, this.props.popTimeout);
       if (message) {
          this.logger.debug('lpush', message, this.props.out);
+         if (this.components.messageRegister) {
+            await this.components.messageRegister.registerMessage(message);
+         }
          const multi = this.redisClient.multi();
          this.props.out.forEach(out => multi.lpush(out, message));
          multi.lrem(this.props.pending, -1, message);
          await multi.execAsync();
-         if (this.components.messageRegister) {
-            await this.components.messageRegister.registerMessage(message);
-         }
       }
    }
 }

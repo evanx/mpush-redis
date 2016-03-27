@@ -4,7 +4,7 @@ dbn=1
 
 c1dbn() {
   dbn=$1
-  echo; echo "$dbn $ns"
+  echo "$dbn $ns $1"
   rediscli="redis-cli -n $dbn"
 }
 
@@ -18,6 +18,14 @@ c0clear() {
     key="$ns:$list"
     echo "del $key" `$rediscli del $key`
   done
+}
+
+c0xid() {
+  for key in `$rediscli keys "${ns}:message:xid:*" | sort`
+  do
+    echo; echo "$key"
+    $rediscli hgetall $key 
+  done 
 }
 
 c0metrics() {
@@ -48,6 +56,19 @@ c0kill() {
   fi
 }
 
+c1rhgetall() {
+  name=$1
+  id=`$rediscli lrange $ns:$name:ids -1 -1`
+  if [ -z "$id" ]
+  then
+    echo "lrange $ns:$name:ids 0 -1" `$rediscli lrange $ns:$name:ids 0 -1`
+  else
+    key="$name:$id"
+    echo "hgetall $ns:$key"
+    $rediscli hgetall $ns:$key
+  fi
+}
+
 c0state() {
   echo
   for key in `$rediscli keys "${ns}:*" | sort`
@@ -60,23 +81,24 @@ c0state() {
       echo $key
     fi
   done
-  for list in in ids pending out0 out1 
+  for list in in ids message:ids pending out0 out1 
   do
     key="$ns:$list"
     echo "llen $key" `$rediscli llen $key` '--' `$rediscli lrange $key 0 99`
   done
-  id=`$rediscli lrange $ns:ids -1 -1`
-  if [ -n "$id" ]
-  then
-    echo "hgetall $ns:$id"
-    $rediscli hgetall $ns:$id
-  fi
+  c1rhgetall service
+  c1rhgetall message
 }
 
 c1push() {
   $rediscli lpush "$ns:in" $1
-  sleep .1
+  sleep .2
+  c0xid
   c0state
+}
+
+c0push() {
+  c1push 12345
 }
 
 c0default() {

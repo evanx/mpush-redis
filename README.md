@@ -264,6 +264,69 @@ A similar mechanism as that described above for tracking services, is used for t
 - `expire :$id $messageExpire` for automatic "garbage-collection"
 - `lpush :ids $id` to register the new active `$id`
 
+Before we push a message, let's check the current sequential `:message:id`
+```
+redis-cli get demo:mpush:message:id
+2
+```
+So the next message will be assigned an `id` of `3.`
+
+Let's push a message.
+```
+redis-cli lpush demo:mpush:in 12345
+```
+
+We check the latest message id:
+```
+redis-cli lrange demo:mpush:message:ids 0 -1
+3
+```
+
+And the :message:$id` hashes:
+```
+redis-cli hgetall demo:mpush:message:3
+1) "timestamp"
+2) "1459086813"
+3) "otherId"
+4) "12345"
+```
+where `otherId` is "intrinsic" id of the message:
+- the message itself if it is a number
+- `message.meta.id` if this exists
+- the SHA1 hash of the message
+
+```javascript
+async registerMessage(message) {
+   const id = await this.redisClient.incrAsync(this.redisKey('id'));
+   logger.debug('registerMessage', id);
+   let otherId;
+   if (/^[0-9]+$/.test(message)) {
+      otherId = message;
+   } else if (message.meta && message.meta.id) {
+      otherId = message.meta.id;
+   } else {
+      otherId = this.service.sha1(message);
+   }
+```
+
+Incidently, we create a cross-referencing key for the handling service to lookup the message id:
+```
+redis-cli get demo:mpush:message:xid:12345
+1) "id"
+2) "3"
+3) "type"
+4) "number"
+```
+where the `type` indicates the incoming message itself was a number, i.e. `12345.`
+
+This enables the downstream service which processes this message to lookup its `id` in order to push it into `:done,`  otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
+
+```
+redis-cli -n 1 hgetall demo:mpush:metrics:timeout
+1) "count"
+2) "6"
+```
+
 We require processors to monitor:
 - timeouts, for metrics and retries
 - expiry, for garbage-collection

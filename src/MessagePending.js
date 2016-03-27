@@ -41,32 +41,30 @@ export default class MessagePending {
          multi.lrange(listKey, -1, -1);
          multi.llen(listKey);
       });
-      this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
       if (!id) {
          await this.service.delay(2000);
       } else {
-         if (length < this.props.messageCapacity*2/3) {
-            const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
-            if (!meta) {
-               this.components.metrics.count('expired', id);
-               await this.redisClient.lremAsync(listKey, -1, id);
-               return this.peekPending();
-            }
-            let duration;
-            if (meta.timestamp) {
-               duration = timestamp - meta.timestamp;
-               if (duration < this.props.messageTimeout) {
-                  this.logger.debug('fresh', {id, timestamp});
-                  return;
-               }
-               this.metrics.sum('timeout', duration, id);
-            }
-            const multiResults = await this.redisClient.multiExecAsync(multi => {
-               multi.del(this.redisKey(id));
-               multi.lrem(listKey, -1, id);
-            });
-            this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
+         this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
+         const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
+         if (!meta) {
+            this.components.metrics.count('message:expire', id);
+            await this.redisClient.lremAsync(listKey, -1, id);
+            return this.peekPending();
          }
+         let duration;
+         if (meta.timestamp) {
+            duration = timestamp - meta.timestamp;
+            if (duration < this.props.messageTimeout) {
+               this.logger.debug('fresh', {id, timestamp});
+               return;
+            }
+            this.components.metrics.sum('timeout', duration, id);
+         }
+         const multiResults = await this.redisClient.multiExecAsync(multi => {
+            multi.del(this.redisKey(id));
+            multi.lrem(listKey, -1, id);
+         });
+         this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
       }
    }
 

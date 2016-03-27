@@ -19,15 +19,19 @@ export default class MessageRegister {
       logger.debug('registerMessage', this.redisKey('id'));
       const id = await this.redisClient.incrAsync(this.redisKey('id'));
       logger.debug('registerMessage', id);
-      let otherId;
+      let xid;
+      let xidMeta = {id};
       if (/^[0-9]+$/.test(message)) {
-         otherId = message;
+         xid = message;
+         xidMeta.type = 'number';
       } else if (message.meta && message.meta.id) {
-         otherId = message.meta.id;
+         xid = message.meta.id;
+         xidMeta.type = 'meta';
       } else {
-         otherId = this.service.sha1(message);
+         xid = this.service.sha1(message);
+         xidMeta.type = 'sha1';
       }
-      logger.debug('registerMessage', id, otherId);
+      logger.debug('registerMessage', id, xid);
       const [[timestamp], length, exists] = await this.redisClient.multiExecAsync(multi => {
          multi.time();
          multi.llen(this.redisKey('ids'));
@@ -41,10 +45,15 @@ export default class MessageRegister {
       } else {
          assert(this.props.messageExpire > 0, 'messageExpire');
          const multiResults = await this.redisClient.multiExecAsync(multi => {
-            logger.debug('register', id, otherId, timestamp);
+            logger.debug('register', id, timestamp, xid, xidMeta);
             multi.lpush(this.redisKey('ids'), id);
-            multi.hmset(this.redisKey('message', id), {timestamp, otherId});
-            multi.expire(this.redisKey('message', id), this.props.messageExpire);
+            multi.hmset(this.redisKey(id), {timestamp, xid});
+            multi.expire(this.redisKey(id), this.props.messageExpire);
+            if (xid) {
+               const key = this.redisKey('xid', xid);
+               multi.hmset(key, xidMeta);
+               multi.expire(key, this.props.messageExpire);
+            }
          });
       }
    }
