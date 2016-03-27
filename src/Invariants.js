@@ -3,6 +3,8 @@
 
 var that = {
    minTimestamp: 1459109145,
+   minInterval: 1,
+   maxInterval: 3600,
    defaultProps: {},
    validateProps: function(p) {
       Asserts.assertIntegerMax(p.serviceRenew, 'serviceRenew', p.serviceExpire - 5);
@@ -46,12 +48,16 @@ var that = {
       }
       return value;
    },
+   addTimestampInterval(timestamp, interval, name) {
+      if (!interval || interval < that.minInterval || interval > that.maxInterval) {
+         throw new Error(`${name} (${interval}) interval`);
+      }
+      return that.parseTimestamp(timestamp, name) + that.parseInt(interval);
+   },
    parseTimestamp(value, name) {
       var timestamp = that.parseInt(value, name);
-      if (timestamp > 0) {
-         if (timestamp < that.minTimestamp) {
-            throw new Error(`${name} (${value}) timestamp`)
-         }
+      if (timestamp > 0 && timestamp < that.minTimestamp) {
+         throw new Error(`${name} (${value}) timestamp`);
       }
       return timestamp;
    },
@@ -59,7 +65,7 @@ var that = {
       if (value === 0) {
          return 0;
       } else if (!value) {
-         return value;
+         return undefined;
       }
       var integerValue = parseInt(value);
       if (typeof value === 'string') {

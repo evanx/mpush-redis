@@ -32,11 +32,12 @@ export default class MessageDone {
    }
 
    async popDone() {
-      const [id, llen, [timestamp]] = await this.redisClient.multiExecAsync(multi => {
+      const [id, llen, [timestampString]] = await this.redisClient.multiExecAsync(multi => {
          multi.brpop(this.props.done, this.props.popTimeout);
          multi.llen(this.props.done);
          multi.time();
       });
+      const timestamp = Invariants.parseInt(timestampString);
       if (!id) {
          await this.service.delay(500);
       } else {
@@ -46,8 +47,7 @@ export default class MessageDone {
             this.service.metrics.count('done:expired', duration, id);
             return this.popDone();
          }
-         let duration;
-         if (meta.timestamp) {
+         if (meta.deadline) {
             duration = timestamp - meta.timestamp;
             this.service.metrics.sum('done', duration, id);
          }

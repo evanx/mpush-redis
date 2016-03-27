@@ -32,11 +32,12 @@ export default class MessageRegister {
          xidMeta.type = 'sha1';
       }
       logger.debug('registerMessage', id, xid);
-      const [[timestamp], length, exists] = await this.redisClient.multiExecAsync(multi => {
+      const [[timestampString], length, exists] = await this.redisClient.multiExecAsync(multi => {
          multi.time();
          multi.llen(this.redisKey('ids'));
          multi.exists(this.redisKey(id));
       });
+      const timestamp = Invariants.parseTimestamp(timestampString);
       if (exists) {
          throw new Error('message exists: ' + this.redisKey(id));
       }
@@ -46,7 +47,8 @@ export default class MessageRegister {
          assert(this.props.messageExpire > 0, 'messageExpire');
          assert(this.props.messageTimeout > 0, 'messageTimeout');
          const multiResults = await this.redisClient.multiExecAsync(multi => {
-            const hashes = {timestamp, xid, timeout: this.props.messageTimeout};
+            const deadline = Invariants.addTimestampInterval(timestamp, this.props.messageTimeout, 'deadline');
+            const hashes = {timestamp, xid, deadline};
             logger.debug('register', id, hashes, xidMeta);
             multi.lpush(this.redisKey('ids'), id);
             multi.hmset(this.redisKey(id), hashes);

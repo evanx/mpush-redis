@@ -49,20 +49,21 @@ export default class MessagePending {
          if (!meta) {
             this.components.metrics.count('message:expire', id);
             await this.redisClient.lremAsync(listKey, -1, id);
-            return this.peekPending();
+            return;
          }
-         let deadline;
-         if (meta.deadline) {
-            deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
-            if (deadline && timestamp > deadline) {
-               this.components.metrics.sum('timeout', duration, id);
-            }
+         assert(meta.deadline, 'deadline');
+         const deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
+         if (deadline && timestamp > deadline) {
+            const timeout = timestamp - deadline;
+            this.components.metrics.sum('timeout', timeout, id);
+            const multiResults = await this.redisClient.multiExecAsync(multi => {
+               multi.del(this.redisKey(id));
+               multi.lrem(listKey, -1, id);
+            });
+            this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
+            return;
          }
-         const multiResults = await this.redisClient.multiExecAsync(multi => {
-            multi.del(this.redisKey(id));
-            multi.lrem(listKey, -1, id);
-         });
-         this.logger.info('removed', {id, meta, deadline}, multiResults.join(' '));
+         this.logger.info('pending', {id, meta});
       }
    }
 

@@ -24,16 +24,16 @@ c0xid() {
   for key in `$rediscli keys "${ns}:message:xid:*" | sort`
   do
     echo; echo "$key"
-    $rediscli hgetall $key 
-  done 
+    $rediscli hgetall $key
+  done
 }
 
 c0metrics() {
   for key in `$rediscli keys "${ns}:metrics:*" | sort`
   do
     echo; echo "$key"
-    $rediscli hgetall $key 
-  done 
+    $rediscli hgetall $key
+  done
 }
 
 c0end() {
@@ -52,7 +52,15 @@ c0kill() {
   then
     pid=`$rediscli hget $ns:$id pid`
     echo "kill $pid for $id"
-    kill $pid 
+    kill $pid
+  fi
+}
+
+c0done() {
+  id=`$rediscli lrange $ns:message:ids -1 -1`
+  if [ -n "$id" ]
+  then
+     $rediscli lpush "$ns:done" $id
   fi
 }
 
@@ -81,7 +89,7 @@ c0state() {
       echo $key
     fi
   done
-  for list in in ids message:ids pending out0 out1 
+  for list in in ids message:ids pending out0 out1
   do
     key="$ns:$list"
     echo "llen $key" `$rediscli llen $key` '--' `$rediscli lrange $key 0 99`
@@ -118,4 +126,3 @@ then
   shift
   c$#$command $@
 fi
-
