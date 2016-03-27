@@ -16,10 +16,11 @@ export default class Demo {
             this.redisClient.lpush(this.props.in, message);
          });
          setTimeout(async () => {
-            let results = await this.redisClient.multiExecAsync(multi => {
-               multi.lrange(this.props.out[0], -1 -1);
+            let [[id]] = await this.redisClient.multiExecAsync(multi => {
+               logger.info('lrange', this.props.out[0]);
+               multi.lrange(this.props.out[0], 0, 0);
             });
-            logger.info('results', results);
+            logger.info('results', id);
             this.service.end();
          }, 1000);
       }, 2000);
