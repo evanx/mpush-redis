@@ -27,7 +27,7 @@ module.exports = {
    },
    assertIntMax(value, name, max) {
       if (!max) {
-         min = Invariants.props[name].max;
+         max = Invariants.props[name].max;
       }
       assert(value, {name, value});
       assert(Number.isInteger(value), format('integer', {name, value}));

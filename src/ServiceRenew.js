@@ -11,7 +11,8 @@ export default class ServiceRenew {
       Object.assign(this, state);
       assert(this.props.serviceRedis, 'serviceRedis');
       this.redisClient = service.createRedisClient(this.props.serviceRedis);
-      this.intervalId = setInterval(() => this.run(), this..props.serviceRenew*1000);
+      Asserts.assertIntMin(this.props.serviceRenew, 'serviceRenew', 10);
+      this.intervalId = setInterval(() => this.run(), this.props.serviceRenew*1000);
       logger.info('started', this.service.key, this.props.serviceRenew);
    }
 

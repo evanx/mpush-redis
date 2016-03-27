@@ -22,7 +22,10 @@ var that = {
    defaultProps: {},
    props: props,
    validateProps: function(p) {
-      Asserts.assertIntMax(p.serviceRenew, p.serviceExpire - 5);
+      Asserts.assertIntMax(p.serviceRenew, 'serviceRenew', p.serviceExpire - 5);
+   },
+   start: function() {
+      initProps();
    }
 };
 
@@ -33,8 +36,8 @@ function initProps() {
          that.defaultProps[key] = defaultValue;
       }
    });
+   console.log('defaultProps', that.defaultProps);
+   that.validateProps(that.defaultProps);
 }
 
-initProps();
-console.log('defaultProps', that.defaultProps);
-that.validateProps(that.defaultProps);
+module.exports = that;
