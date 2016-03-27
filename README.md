@@ -240,8 +240,6 @@ The `vpush` microservice must:
 - retry delivery of each message indefinitely
 - process at most one message at a time, across all replica service instances
 
-They must be on separate Redis instances, since it will not use `multi.`
-
 
 #### lpush-redis
 
