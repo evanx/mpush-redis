@@ -271,7 +271,7 @@ redis-cli get demo:mpush:message:id
 ```
 So the next message will be assigned an `id` of `3.`
 
-Let's push a message.
+Let's push a message, namely the number `12345.`
 ```
 redis-cli lpush demo:mpush:in 12345
 ```
