@@ -32,17 +32,18 @@ export default class MessageDone {
    }
 
    async popDone() {
-      const [[timestamp], id, length] = await this.redisClient.multiExecAsync(multi => {
-         multi.time();
-         multi.rpop(this.props.done);
+      const [id, llen, [timestamp]] = await this.redisClient.multiExecAsync(multi => {
+         multi.brpop(this.props.done, this.props.popTimeout);
          multi.llen(this.props.done);
+         multi.time();
       });
       if (!id) {
          await this.service.delay(500);
       } else {
-         this.logger.debug('rpop', this.props.done, timestamp, id, length);
+         this.logger.debug('rpop', this.props.done, timestamp, id, llen);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
          if (!meta) {
+            this.service.metrics.count('done:expired', duration, id);
             return this.popDone();
          }
          let duration;

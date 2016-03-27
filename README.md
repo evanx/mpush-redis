@@ -310,7 +310,7 @@ redis-cli hgetall demo:mpush:message:3
 5) "xid"
 6) "12345"
 ```
-where the `deadline` is the `timestamp + messageTimeout.` Suffice it to say that replica instances might have different timeouts, e.g. during rolling reconfigurations.
+We record the "deadline" time calculated as `timestamp + timeout.` Suffice it to say that replica instances might have different timeouts, e.g. during rolling reconfigurations.
 
 We determine the `xid` as follows:
 ```javascript

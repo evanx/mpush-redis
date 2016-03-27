@@ -35,11 +35,12 @@ export default class MessagePending {
 
    async peekPending() {
       const listKey = this.redisKey('ids');
-      const [[timestamp], [id], length] = await this.redisClient.multiExecAsync(multi => {
+      const [[timestampString], [id], length] = await this.redisClient.multiExecAsync(multi => {
          multi.time();
          multi.lrange(listKey, -1, -1);
          multi.llen(listKey);
       });
+      const timestamp = parseInt(timestampString);
       if (!id) {
          await this.service.delay(800);
       } else {
@@ -50,14 +51,11 @@ export default class MessagePending {
             await this.redisClient.lremAsync(listKey, -1, id);
             return this.peekPending();
          }
-         let duration;
-         if (meta.timestamp) {
-            duration = timestamp - meta.timestamp;
-            if (duration < this.props.messageTimeout) {
-               this.logger.debug('fresh', {id, timestamp});
-               return;
+         if (meta.deadline) {
+            const deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
+            if (deadline && timestamp > deadline) {
+               this.components.metrics.sum('timeout', duration, id);
             }
-            this.components.metrics.sum('timeout', duration, id);
          }
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
