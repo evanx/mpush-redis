@@ -236,31 +236,32 @@ redis-cli del demo:mpush:service:9
 (integer) 0
 ```
 
+#### Startup
+
 At startup, the service instance must perform garbage-collection on behalf of other expired instances in the same `serviceNamespace.`
 
-In particular, it iterates over `:service:ids`
+The service compacts the listed active `:ids` as follows.
+- iterate over `:service:ids`
+- if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
+
+Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time.
+
+Let's illustrate this process. Firstly, we iterate over `:service:ids`
 ```
 redis-cli lrange demo:mpush:service:ids 0 -1
 1) 9
 ```
-For each `id` it should check if the service key has expired (or was deleted):
+For each `id` we check if key has expired (or was deleted):
 ```
 redis-cli exists demo:mpush:service:9
 (integer) 1
 ```
-And remove any expired service ids from `:service:ids`
+Finally, we remove any expired service ids from `:service:ids`
 ```
 redis-cli lrem demo:mpush:service:ids -1 9
 (integer) 1
 ```
 which scans `:service:ids` from the tail.
-
-#### Startup
-
-At startup, the service compacts the listed active `:ids` as follows.
-- if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
-
-Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
 
 
 #### Bug mitigation
