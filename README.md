@@ -221,7 +221,7 @@ INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
 
 #### pid
 
-Test this using `kill $pid`
+We can `kill` the latest service instance as follows:
 ```
 id=`redis-cli lrange demo:mpush:service:ids 0 0`
 pid=`redis-cli hget demo:mpush:service:$id pid`
