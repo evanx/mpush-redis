@@ -168,13 +168,13 @@ So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 s
 
 ```
 redis-cli ttl demo:mpush:service:9
-<hr>
+
 (integer) 54
 ```
 
 ```
 redis-cli hkeys demo:mpush:service:9
-<hr>
+
 1) "host"
 2) "pid"
 3) "started"
