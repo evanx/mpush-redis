@@ -181,9 +181,13 @@ At startup, the service compacts the listed active `:ids` as follows.
 Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
 
 
-#### Risk mitigration
+#### Bug mitigation
 
-Incidently, to mitigate the risk of services colliding in Redis due to undetected bugs and/or misconfiguration, one can configure a `serviceRedis` URL together with the `serviceNamespace`, and so provision dedicated Redis instances for various pods of services. Further efforts can be taken, e.g. to validate keys in the Redis client, to ensure that some erroneous service does not modify keys outside its configured namespace. 
+Incidently, to mitigate the risk of services colliding in Redis due to undetected bugs and/or misconfiguration, one can configure a `serviceRedis` URL together with the `serviceNamespace`, and so provision dedicated Redis instances for various pods of services.
+
+Further efforts will be taken, as follows:
+- employ a `redisClient` mock for e2e tests
+- introduce a `redisClient` safety wrapper e.g. with keyspace constraints
 
 
 ### Message tracking for timeouts and retries
