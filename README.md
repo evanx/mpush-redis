@@ -208,7 +208,7 @@ redis-cli hgetall demo:mpush:service:9
 6) "1459049541"
 ```
 
-#### SIGTERM
+#### SIGTERM via pid
 
 For example, we can `kill` the latest service instance as follows:
 ```
