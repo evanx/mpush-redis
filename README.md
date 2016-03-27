@@ -230,7 +230,7 @@ kill $pid
 
 Services must monitor and ensure the existence of their key e.g. before each `brpoplpush` operation, and otherwise exit.
 
-Therefore services can be shutdown manually via Redis as follows:
+Therefore services can be shutdown via Redis by deleting their key:
 ```
 redis-cli del demo:mpush:service:9
 (integer) 0
