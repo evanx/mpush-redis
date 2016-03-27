@@ -131,7 +131,7 @@ module.exports = {
 
 #### Default props
 
-Default values for props are reported as follows:
+Default values for props are reported in the logs as follows:
 ```
 INFO Service:
     defaultProps {
