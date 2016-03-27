@@ -365,7 +365,7 @@ The "expired monitor" performs the following garbage-collection:
 
 #### Timeout monitor
 
-The `:message:$id` hashes includes the `timestamp` of the message. This value is required to detect message timeouts.
+The `:message:$id` hashes include the `timestamp` of the message. This value is required to detect message timeouts.
 
 The worker microservice which actually handles the message, pushes its id into a `:message:done` list. This list is monitored by our Redis microservice, to detect timeouts i.e. not "done" after the `messageTimeout` period.
 
