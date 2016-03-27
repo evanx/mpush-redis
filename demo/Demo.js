@@ -23,8 +23,8 @@ export default class Demo {
             logger.info('results', id);
             assert.equal(id, lodash.last(messages), 'last id');
             this.service.end();
-         }, 3000);
-      }, 2000);
+         }, 4000);
+      }, 1000);
    }
 
    async end() {
