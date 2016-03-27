@@ -81,7 +81,6 @@ Let's manually test this by pushing an incoming message into `:in`
 
 ```shell
 redis-cli lpush demo:mpush:in one
-
 (integer) 1
 ```
 
@@ -97,13 +96,11 @@ lpush demo:mpush:out1 one
 We check that the message is moved to the parallel output queues.
 ```shell
 redis-cli lrange demo:mpush:out0 0 -1
-
 1) "one"
 ```
 
 ```shell
 redis-cli lrange demo:mpush:out1 0 -1
-
 1) "one"
 ```
 
@@ -172,14 +169,12 @@ So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 s
 
 ```
 redis-cli ttl demo:mpush:service:9
-
 (integer) 54
 ```
 where the `TTL` is 54 seconds, i.e. it was renewed 6 seconds ago.
 
 ```
 redis-cli hkeys demo:mpush:service:9
-
 1) "host"
 2) "pid"
 3) "started"
@@ -198,14 +193,12 @@ INFO Service: registered demo:mpush:service:9 { host: 'eowyn', pid: 19897, start
 We can get the latest service id:
 ```
 redis-cli lrange demo:mpush:service:ids -1 -1
-
 1) "9"
 ```
 
 And inspect its hashes:
 ```
 redis-cli hgetall demo:mpush:service:9
-
 1) "host"
 2) "eowyn"
 3) "pid"
@@ -233,20 +226,34 @@ pid=`redis-cli hget demo:mpush:service:$id pid`
 kill $pid
 ```
 
-#### Shutdown
-
-Services can be shutdown manually via Redis too:
-- `del :$id` to delete the service hashes key, which should cause a shutdown
-- `lrem :ids -1 $id`
-
-For example:
-```
-redis-cli del demo:mpush:service:9
-redis-cli lrem demo:mpush:service:ids -1 9
-```
+#### Remote shutdown via Redis
 
 Services must monitor and ensure the existence of their key e.g. before each `brpoplpush` operation, and otherwise exit.
 
+Therefore services can be shutdown manually via Redis as follows:
+```
+redis-cli del demo:mpush:service:9
+(integer) 0
+```
+
+At startup, the service instance must perform garbage-collection on behalf of other expired instances in the same `serviceNamespace.`
+
+In particular, it iterates over `:service:ids`
+```
+redis-cli lrange demo:mpush:service:ids 0 -1
+1) 9
+```
+For each `id` it should check if the service key has expired (or was deleted):
+```
+redis-cli exists demo:mpush:service:9
+(integer) 1
+```
+And remove any expired service ids from `:service:ids`
+```
+redis-cli lrem demo:mpush:service:ids -1 9
+(integer) 1
+```
+which scans `:service:ids` from the tail.
 
 #### Startup
 
@@ -277,8 +284,7 @@ A similar mechanism as that described above for tracking services, is used for t
 Before we push a message, let's check the current sequential `:message:id`
 ```
 redis-cli get demo:mpush:message:id
-
-2
+1) "2"
 ```
 So the next message will be assigned an `id` of `3.`
 
@@ -290,14 +296,12 @@ redis-cli lpush demo:mpush:in 12345
 We check the latest message id:
 ```
 redis-cli lrange demo:mpush:message:ids 0 -1
-
-3
+1) 3
 ```
 
 And the `:message:$id` hashes:
 ```
 redis-cli hgetall demo:mpush:message:3
-
 1) "timestamp"
 2) "1459086813"
 3) "xid"
@@ -331,7 +335,6 @@ where `xid` is "extracted" id of the message as follows:
 We set a cross-referencing key for a subscriber service instance to lookup the message id:
 ```
 redis-cli hgetall demo:mpush:message:xid:12345
-
 1) "id"
 2) "3"
 3) "type"
@@ -343,7 +346,6 @@ This enables the downstream subscriber service which processes this message, to 
 
 ```
 redis-cli -n 1 hgetall demo:mpush:metrics:timeout
-
 1) "count"
 2) "6"
 ```
