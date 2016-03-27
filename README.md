@@ -300,13 +300,13 @@ async registerMessage(message) {
    let xidMeta = {id};
    if (/^[0-9]+$/.test(message)) {
       xid = message;
-      xidMeta = 'number';
+      xidMeta.type = 'number';
    } else if (message.meta && message.meta.id) {
       xid = message.meta.id;
-      xidMeta = 'meta';
+      xidMeta.type = 'meta';
    } else {
       xid = this.service.sha1(message);
-      xidMeta = 'sha1';
+      xidMeta.type = 'sha1';
    }
 ```
 where `xid` is "extracted" id of the message as follows:
