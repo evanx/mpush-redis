@@ -240,7 +240,7 @@ redis-cli del demo:mpush:service:9
 
 At startup, the service instance must perform garbage-collection on behalf of other expired instances in the same `serviceNamespace.`
 
-The service compacts the listed active `:ids` as follows.
+In particular, the service compacts the listed active `:ids` as follows.
 - iterate over `:service:ids`
 - if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
 
