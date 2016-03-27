@@ -11,8 +11,8 @@ export default class ServiceRenew {
       Object.assign(this, state);
       assert(this.props.serviceRedis, 'serviceRedis');
       this.redisClient = service.createRedisClient(this.props.serviceRedis);
-      this.renewIntervalId = setInterval(() => this.run(), Invariants.props.serviceExpire.renew*1000);
-      logger.info('started', this.service.key, Invariants.props.serviceExpire.renew);
+      this.intervalId = setInterval(() => this.run(), this..props.serviceRenew*1000);
+      logger.info('started', this.service.key, this.props.serviceRenew);
    }
 
    async end() {
@@ -21,8 +21,8 @@ export default class ServiceRenew {
          return;
       }
       this.ended = true;
-      if (this.renewIntervalId) {
-         clearInterval(this.renewIntervalId);
+      if (this.intervalId) {
+         clearInterval(this.intervalId);
       }
       if (this.redisClient) {
          await this.redisClient.quitAsync();

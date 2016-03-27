@@ -35,6 +35,7 @@ export default class Service {
       this.props = Object.assign({}, Invariants.defaultProps, this.props);
       this.logger.info('start', this.props);
       this.assertProps();
+      Invariants.validateProps(this.props);
       this.components = [new MonitorIncoming('monitor')];
       if (this.props.serviceNamespace) {
          assert(this.props.serviceRedis, 'serviceRedis');

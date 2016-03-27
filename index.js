@@ -8,6 +8,8 @@ global.lodash = require('lodash');
 global.os = require('os');
 global.redisLib = require('redis');
 
+var logger = global.bunyan.createLogger({name: 'entry', level: 'debug'});
+
 bluebird.promisifyAll(redisLib.RedisClient.prototype);
 bluebird.promisifyAll(redisLib.Multi.prototype);
 redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
@@ -16,6 +18,12 @@ redisLib.RedisClient.prototype.multiExecAsync = function(fn) {
    return multi.execAsync();
 };
 
+require("babel-polyfill");
+require('babel-core/register');
+logger.debug('babel registered');
+
+global.Loggers = require('./src/Loggers');
+global.Asserts = require('./src/Asserts');
 global.Invariants = require('./src/Invariants');
 
 global.loggerLevel = 'info';
@@ -24,12 +32,6 @@ if (process.env.loggerLevel) {
 } else if (process.env.NODE_ENV === 'development') {
    global.loggerLevel = 'debug';
 }
-var logger = global.bunyan.createLogger({name: 'entry', level: 'debug'});
-require("babel-polyfill");
-require('babel-core/register');
-logger.debug('babel registered');
-global.Loggers = require('./src/Loggers');
-global.Asserts = require('./src/Asserts');
 var Service = require('./src/Service').default;
 //logger.debug('App', typeof App, Object.keys(App));
 global.service = new Service();

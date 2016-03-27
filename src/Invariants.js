@@ -1,35 +1,40 @@
 
-module.exports = {
-   defaultProps: {
+var props = {
+   serviceExpire: {
+      type: 'integer',
+      defaultValue: 60,
+      min: 30,
    },
-   props: {
-      serviceExpire: {
-         type: 'integer',
-         defaultValue: 60,
-         min: 30,
-         renew: 15 // must be less than min
-      },
-      popTimeout: {
-         max: 30
-      },
-      serviceCapacity: {
-         min: 1,
-         defaultValue: 10
-      }
+   serviceRenew: {
+      defaultValue: 15,
+      min: 5
+   },
+   popTimeout: {
+      max: 30
+   },
+   serviceCapacity: {
+      min: 1,
+      defaultValue: 10
+   }
+}
+
+var that = {
+   defaultProps: {},
+   props: props,
+   validateProps: function(p) {
+      Asserts.assertIntMax(p.serviceRenew, p.serviceExpire - 5);
    }
 };
 
-Object.keys(module.exports.props).forEach(function(key) {
-   var defaultValue = module.exports.props[key].defaultValue;
-   if (defaultValue) {
-      module.exports.defaultProps[key] = defaultValue;
-   }
-});
-
-console.log('defaultProps', module.exports.defaultProps);
-
-function assertProps(props) {
-   assert(props.serviceExpire.renew < props.serviceExpire.min - 5);
+function initProps() {
+   Object.keys(props).forEach(function(key) {
+      var defaultValue = props[key].defaultValue;
+      if (defaultValue) {
+         that.defaultProps[key] = defaultValue;
+      }
+   });
 }
 
-assertProps(module.exports.props);
+initProps();
+console.log('defaultProps', that.defaultProps);
+that.validateProps(that.defaultProps);

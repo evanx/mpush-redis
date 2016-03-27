@@ -25,6 +25,15 @@ module.exports = {
       assert(Number.isInteger(value), name);
       return value;
    },
+   assertIntMax(value, name, max) {
+      if (!max) {
+         min = Invariants.props[name].max;
+      }
+      assert(value, {name, value});
+      assert(Number.isInteger(value), format('integer', {name, value}));
+      assert(value <= max, format('max', {name, value, max}));
+      return value;
+   },
    assertIntMin(value, name, min) {
       if (!min) {
          min = Invariants.props[name].min;
