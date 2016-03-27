@@ -290,11 +290,8 @@ redis-cli hgetall demo:mpush:message:3
 3) "xid"
 4) "12345"
 ```
-where `xid` is "extracted" id of the message as follows:
-- if the message itself is a number, then take this number
-- `message.meta.id` if this exists
-- the SHA1 hash of the message
 
+We determine the `xid` as follows:
 ```javascript
 async registerMessage(message) {
    const id = await this.redisClient.incrAsync(this.redisKey('id'));
@@ -312,6 +309,11 @@ async registerMessage(message) {
       xidMeta = 'sha1';
    }
 ```
+where `xid` is "extracted" id of the message as follows:
+- if the message itself is a number, then take this number
+- `message.meta.id` if this exists
+- the SHA1 hash of the message
+
 
 Incidently, we create a cross-referencing key for the handling service to lookup the message id:
 ```
