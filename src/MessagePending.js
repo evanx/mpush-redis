@@ -51,8 +51,9 @@ export default class MessagePending {
             await this.redisClient.lremAsync(listKey, -1, id);
             return this.peekPending();
          }
+         let deadline;
          if (meta.deadline) {
-            const deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
+            deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
             if (deadline && timestamp > deadline) {
                this.components.metrics.sum('timeout', duration, id);
             }
@@ -61,7 +62,7 @@ export default class MessagePending {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
          });
-         this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
+         this.logger.info('removed', {id, meta, deadline}, multiResults.join(' '));
       }
    }
 
