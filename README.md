@@ -317,13 +317,13 @@ where `xid` is "extracted" id of the message as follows:
 
 We set a cross-referencing key for a subscriber service instance to lookup the message id:
 ```
-redis-cli get demo:mpush:message:xid:12345
+redis-cli hgetall demo:mpush:message:xid:12345
 1) "id"
 2) "3"
 3) "type"
 4) "number"
 ```
-where the `type` indicates the incoming message itself was a number, i.e. `12345.` Other alternatives for `type` are `meta` and `sha1.`
+where the `type` indicates the incoming message itself was a number, i.e. `12345.`
 
 This enables the downstream service which processes this message to lookup its `id` in order to push it into `:done,`  otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
