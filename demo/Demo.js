@@ -1,8 +1,9 @@
 
 export default class Demo {
 
-   constructor(name) {
+   constructor(name, options) {
       this.name = name;
+      this.options = options;
    }
 
    async start(that) {
@@ -17,15 +18,17 @@ export default class Demo {
             await this.redisClient.lpushAsync(this.props.in, message);
          }
          setTimeout(async () => {
-            let [[id0], [id1]] = await this.redisClient.multiExecAsync(multi => {
-               logger.info('lrange', this.props.out);
-               multi.lrange(this.props.out[0], 0, 0);
-               multi.lrange(this.props.out[1], 0, 0);
-            });
-            logger.info('results', id0, id1);
-            assert.equal(id0, lodash.last(messages), 'last id');
-            assert.equal(id1, lodash.last(messages), 'last id');
-            this.service.end();
+            if (options.auto) {
+               let [[id0], [id1]] = await this.redisClient.multiExecAsync(multi => {
+                  logger.info('lrange', this.props.out);
+                  multi.lrange(this.props.out[0], 0, 0);
+                  multi.lrange(this.props.out[1], 0, 0);
+               });
+               logger.info('results', id0, id1);
+               assert.equal(id0, lodash.last(messages), 'last id');
+               assert.equal(id1, lodash.last(messages), 'last id');
+               this.service.end();
+            }
          }, 1000);
       }, 1000);
    }

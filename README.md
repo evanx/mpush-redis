@@ -210,9 +210,9 @@ redis-cli hgetall demo:mpush:service:9
 
 #### SIGTERM
 
-`SIGTERM` should result in a clean shutdown:
-- `del :$id`
-- `lrem :ids -1 $id` i.e. scanning from the tail
+`SIGTERM` should result in a clean shutdown, including the following:
+- `del :service:$id`
+- `lrem :service:ids -1 $id` i.e. scanning from the tail
 
 ```
 INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }

@@ -16,17 +16,17 @@ import Metrics from './Metrics';
 import ServiceRenew from './ServiceRenew';
 
 global.ServiceError = function() {
-  this.constructor.prototype.__proto__ = Error.prototype;
-  Error.captureStackTrace(this, this.constructor);
-  this.name = this.constructor.name;
-  this.message = JSON.stringify(args);
+   this.constructor.prototype.__proto__ = Error.prototype;
+   Error.captureStackTrace(this, this.constructor);
+   this.name = this.constructor.name;
+   this.message = JSON.stringify(args);
 }
 
 global.ValidationError = function(...args) {
-  this.constructor.prototype.__proto__ = Error.prototype;
-  Error.captureStackTrace(this, this.constructor);
-  this.name = this.constructor.name;
-  this.message = JSON.stringify(args);
+   this.constructor.prototype.__proto__ = Error.prototype;
+   Error.captureStackTrace(this, this.constructor);
+   this.name = this.constructor.name;
+   this.message = JSON.stringify(args);
 }
 
 export default class Service {
@@ -214,6 +214,10 @@ export default class Service {
          if (arg === 'demo') {
             const props = require('../demo/props');
             this.readyComponent = new Demo('demo');
+            return props;
+         } else if (arg === 'auto') {
+            const props = require('../demo/props');
+            this.readyComponent = new Demo('demo', {auto: true});
             return props;
          } else if (/\.js$/.test(arg)) {
             if (fs.existsSync(arg)) {
