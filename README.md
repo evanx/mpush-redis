@@ -243,7 +243,7 @@ The `vpush` microservice must:
 
 #### lpush-redis
 
-We will implement another service, namely `lpush,` for the case where input and output queues are on the same Redis instance. This implementation will use `multi.`
+We will implement another microservice, namely `lpush,` for the case where input and output queues are on the same Redis instance. This implementation will use `multi.`
 
 
 #### Redex
