@@ -126,14 +126,14 @@ module.exports = {
    serviceExpire: 60,
    serviceRenew: 10,
    serviceCapacity: 10,
-   popTimeout: 10,
    messageExpire: 30,
    messageTimeout: 10,
    messageCapacity: 1000,
+   popTimeout: 10,
    in: 'demo:mpush:in',
    pending: 'demo:mpush:pending',
-   done: 'demo:mpush:done',
-   out: ['demo:mpush:out0', 'demo:mpush:out1']
+   out: ['demo:mpush:out0', 'demo:mpush:out1'],
+   done: 'demo:mpush:done'
 };
 ```
 
