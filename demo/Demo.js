@@ -11,7 +11,7 @@ export default class Demo {
       this.redisClient = this.service.createRedisClient(this.props.redis);
       const messages = ['one', 'two', 'three'];
       setTimeout(async () => {
-         for (const message in messages) {
+         for (const message of messages) {
             this.logger.info('push', this.props.in, message);
             await this.redisClient.lpushAsync(this.props.in, message);
          }
