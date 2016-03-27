@@ -352,20 +352,12 @@ redis-cli hgetall demo:mpush:message:xid:12345
 ```
 where the `type` indicates the incoming message itself was a number, i.e. `12345.`
 
-This enables a subscriber worker to lookup its `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
+The `:message:xid:$xid` key enables a subscriber worker to lookup the message `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
 ```
-redis-cli -n 1 hgetall demo:mpush:metrics:timeout
-1) "count"
-2) "6"
+redis-cli hget demo:mpush:metrics:timeout count
+"3"
 ```
-
-#### Expire monitor
-
-The "expired monitor" performs the following garbage-collection:
-- `lrange :message:ids 0 -1` and for each, `exists :message:$id` to detect expired messages
-- `lrem :message:ids -1 $id` to remove a expired an `id` from the `:message:ids` list
-
 
 #### Timeout monitor
 
@@ -387,6 +379,16 @@ The `lrem` command is performed by the monitor when it detects expired ids, i.e.
 ### Metrics
 
 We update `:metrics:$name` hashes with fields `{count, sum, max}.`
+
+```
+redis-cli hgetall demo:mpush:metrics:timeout
+1) "count"
+2) "3"
+3) "sum"
+4) "30"
+5) "max"
+6) "10"
+```
 
 The average time can be calculated by dividing `sum/count.`
 
