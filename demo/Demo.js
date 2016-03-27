@@ -14,6 +14,9 @@ export default class Demo {
             this.logger.info('push', this.props.in, message);
             this.redisClient.lpush(this.props.in, message);
          });
+         setTimeout(() => {
+            this.service.end();
+         }, 1000);
       }, 2000);
    }
 
