@@ -61,6 +61,8 @@ INFO App: config {
       out: [ 'demo:mpush:out0', 'demo:mpush:out1' ]
 ```
 
+#### Blocking pop
+
 From the logs, we deduce that the service performs the following command.
 
 ```
@@ -71,6 +73,9 @@ where the blocking pop operation has a configured timeout of 5 seconds (repeated
 Note that this time determines the duration of a graceful shutdown, because we can only quit when this operation yields.
 
 When the pop yields a message, this service must push this message into the parallel output queues.
+
+
+#### Publish a message
 
 Let's manually test this by pushing an incoming message into `:in`
 
@@ -85,6 +90,9 @@ lpush demo:mpush:out0 one
 lpush demo:mpush:out1 one
 ```
 
+
+#### Check subscription queues
+
 We check that the message is moved to the parallel output queues.
 ```shell
 evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
@@ -94,6 +102,7 @@ evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
 evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
 1) "one"
 ```
+
 
 ### Configuration
 
