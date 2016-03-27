@@ -21,8 +21,9 @@ export default class Demo {
                multi.lrange(this.props.out[0], 0, 0);
             });
             logger.info('results', id);
+            assert.equal(id, lodash.last(messages), 'last id');
             this.service.end();
-         }, 1000);
+         }, 3000);
       }, 2000);
    }
 
