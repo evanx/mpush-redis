@@ -1,7 +1,7 @@
 
 const logger = Loggers.createLogger(module.filename);
 
-export default class RenewInterval {
+export default class ServiceRenew {
 
    constructor(name) {
       this.name = 'renew';

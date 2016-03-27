@@ -20,22 +20,19 @@ export default class MonitorIncoming {
       this.logger.info('run');
       while (!this.ended) {
          try {
+            await this.service.validate();
             await this.pop();
+            await this.service.delay(1000);
          } catch (err) {
-            this.logger.warn(err);
+            this.logger.error(err);
             this.ended = true;
             this.service.end();
          }
       }
-      await this.redisClient.quitAsync();
+      return this.redisClient.quitAsync();
    }
 
    async pop() {
-      await this.service.validate();
-      if (this.ended) {
-         this.logger.warn('ended');
-         return;
-      }
       this.logger.debug('brpoplpush', this.props.in, this.props.pending, this.props.popTimeout);
       const message = await this.redisClient.brpoplpushAsync(this.props.in, this.props.pending, this.props.popTimeout);
       if (message) {

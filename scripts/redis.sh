@@ -2,10 +2,11 @@
 ns='demo:mpush'
 dbn=1
 
-echo "$dbn $ns"
-
-rediscli="redis-cli -n $dbn"
-
+c1dbn() {
+  dbn=$1
+  echo; echo "$dbn $ns"
+  rediscli="redis-cli -n $dbn"
+}
 
 c0flush() {
   $rediscli keys "$ns:*" | xargs -n1 $rediscli del
@@ -69,9 +70,13 @@ c0default() {
 }
 
 command=default
-if [ $# -ge 1 ]
+if [ $# -ge 2 ]
 then
+  dbn=$1
+  shift
+  c1dbn $dbn
   command=$1
   shift
+  c$#$command $@
 fi
-c$#$command $@
+

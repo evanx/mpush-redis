@@ -75,7 +75,7 @@ When the pop yields a message, this service must push this message into the para
 Let's manually test this by pushing an incoming message into `:in`
 
 ```shell
-evans@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
+evanx@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
 (integer) 1
 ```
 
@@ -87,11 +87,11 @@ lpush demo:mpush:out1 one
 
 We check that the message is moved to the parallel output queues.
 ```shell
-evans@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
+evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
 1) "one"
 ```
 ```shell
-evans@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
+evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
 1) "one"
 ```
 
@@ -272,9 +272,16 @@ While Node.js might not be as performant as Go or Rust for example, we neverthel
 
 "Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
 
+I believe that Redis, Node, ES2016, React and stateless microservices are relatively simple, pragmatic and productive. Moreover they are complementary technologies:
+- Redis is great for shared state and asynchronous messaging, to enable stateless microservices
+- microservices are simple to write
+- Node is great for small codebases like microservices
+- ES2016 async/await is great for Node
+
 My "stretch goal" would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring and service orchestration.
 
 I'd interested in applying that to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
+
 
 
 ### Further reading

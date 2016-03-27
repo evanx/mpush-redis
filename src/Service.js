@@ -9,8 +9,10 @@ import redisLib from 'redis';
 import Demo from '../demo/Demo';
 
 import MonitorIncoming from './MonitorIncoming';
+import MonitorPending from './MonitorPending';
+import MonitorDone from './MonitorDone';
 import Metrics from './Metrics';
-import RenewInterval from './RenewInterval';
+import ServiceRenew from './ServiceRenew';
 
 export default class Service {
 
@@ -26,12 +28,14 @@ export default class Service {
       this.logger = Loggers.createLogger(module.filename);
       this.startedComponents = [];
       this.logger.info('defaultProps', Invariants.defaultProps);
-      this.props = Object.assign({}, Invariants.defaultProps, await this.loadProps());
+      this.props = await this.loadProps();
       if (!this.props) {
          throw 'Use the propsFile environment variable, as per README';
       }
+      this.props = Object.assign({}, Invariants.defaultProps, this.props);
       this.logger.info('start', this.props);
       this.assertProps();
+      this.components = [new MonitorIncoming('monitor')];
       if (this.props.serviceNamespace) {
          assert(this.props.serviceRedis, 'serviceRedis');
          this.redisClient = this.createRedisClient(this.props.serviceRedis);
@@ -42,14 +46,13 @@ export default class Service {
          await this.startComponent(this.metrics);
          this.metrics.count('run');
          await this.startService();
+         this.components.push(new MonitorPending('pending'));
+         this.components.push(new MonitorDone('done'));
       } else {
          const redisClient = this.createRedisClient(this.props.redis);
          const redisTime = await redisClient.timeAsync();
          this.startTimestamp = parseInt(redisTime[0]);
       }
-      this.components = [
-         new MonitorIncoming('monitor')
-      ];
       await Promise.all(this.components.map(component => this.startComponent(component)));
       if (this.readyComponent) {
          await this.startComponent(this.readyComponent);
@@ -60,8 +63,8 @@ export default class Service {
    async startComponent(component) {
       assert(component.name, 'component name');
       const name = component.name;
-      await component.start({name, props: this.props, service: this,
-         logger: this.createLogger(name)
+      await component.start({name, props: this.props, service: this, metrics: this.metrics,
+         logger: this.createLogger(name),
       });
       this.startedComponents.push(component);
    }
@@ -87,8 +90,8 @@ export default class Service {
          this.checkServices(ids);
       }
       assert.equal(expire, 1, {expire: this.key});
-      this.renewInterval = new RenewInterval('renew');
-      await this.startComponent(this.renewInterval);
+      this.serviceRenew = new ServiceRenew('renew');
+      await this.startComponent(this.serviceRenew);
       this.logger.info('registered', this.key, this.meta);
    }
 
@@ -190,7 +193,7 @@ export default class Service {
             multi.exists(this.key);
          });
          if (!exists) {
-            throw new Error('key: ' + this.key);
+            throw 'key: ' + this.key;
          }
       }
    }

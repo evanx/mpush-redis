@@ -18,32 +18,32 @@ export default class Metrics {
    }
 
    async count(name, ...args) {
-      if (this.ended) {
-         this.logger.error('count ended', name);
-         return;
+      try {
+         const hashesKey = this.redisKey(name);
+         this.logger.debug('counter', name, args);
+         this.redisClient.multiExecAsync(multi => {
+            multi.hincrby(hashesKey, 'count', 1);
+         });
+      } catch (err) {
+         logger.warn('count', name, err);
       }
-      const hashesKey = this.redisKey(name);
-      this.logger.debug('counter', name, args);
-      this.redisClient.multiExecAsync(multi => {
-         multi.hincrby(hashesKey, 'count', 1);
-      });
    }
 
    async sum(name, value, ...args) {
-      if (this.ended) {
-         this.logger.error('sum ended', name);
-         return;
+      try {
+         const hashesKey = this.redisKey(name);
+         const max = await this.redisClient.hgetAsync(hashesKey, 'max');
+         this.logger.debug('done', name, value, args);
+         this.redisClient.multiExecAsync(multi => {
+            multi.hincrby(hashesKey, 'count', 1);
+            multi.hincrby(hashesKey, 'sum', value);
+            if (!max || value > max) {
+               multi.hset(hashesKey, 'max', value);
+            }
+         });
+      } catch (err) {
+         logger.warn('sum', name, err);
       }
-      const hashesKey = this.redisKey(name);
-      const max = await this.redisClient.hgetAsync(hashesKey, 'max');
-      this.logger.debug('done', name, value, args);
-      this.redisClient.multiExecAsync(multi => {
-         multi.hincrby(hashesKey, 'count', 1);
-         multi.hincrby(hashesKey, 'sum', value);
-         if (!max || value > max) {
-            multi.hset(hashesKey, 'max', value);
-         }
-      });
    }
 
    redisKey(...values) {
