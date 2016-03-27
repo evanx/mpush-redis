@@ -245,6 +245,9 @@ redis-cli del demo:mpush:service:9
 redis-cli lrem demo:mpush:service:ids -1 9
 ```
 
+Services must monitor and ensure the existence of their key e.g. before each `brpoplpush` operation, and otherwise exit.
+
+
 #### Startup
 
 At startup, the service compacts the listed active `:ids` as follows.
