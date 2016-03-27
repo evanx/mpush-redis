@@ -317,7 +317,7 @@ redis-cli get demo:mpush:message:xid:12345
 3) "type"
 4) "number"
 ```
-where the `type` indicates the incoming message itself was a number, i.e. `12345.`
+where the `type` indicates the incoming message itself was a number, i.e. `12345.` Other alternatives for `type` are `meta` and `sha1.`
 
 This enables the downstream service which processes this message to lookup its `id` in order to push it into `:done,`  otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
