@@ -214,6 +214,7 @@ redis-cli hgetall demo:mpush:service:9
 - `del :service:$id`
 - `lrem :service:ids -1 $id` i.e. scanning from the tail
 
+We observe the results in the logs:
 ```
 INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
 ```
@@ -222,10 +223,12 @@ INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
 
 Test this using `kill $pid`
 ```
-id=`redis-cli lrange demo:mpush:service:ids -1 -1`
+id=`redis-cli lrange demo:mpush:service:ids 0 0`
 pid=`redis-cli hget demo:mpush:service:$id pid`
 kill $pid
 ```
+where we get the latest service id from the registration list, get its `pid` from its hashes, and kill that process.
+
 
 #### Remote shutdown via Redis
 

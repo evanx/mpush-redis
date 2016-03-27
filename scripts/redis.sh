@@ -13,7 +13,7 @@ c0flush() {
 }
 
 c0clear() {
-  for list in in pending ids out0 out1
+  for list in service:ids message:ids in pending done out0 out1 
   do
     key="$ns:$list"
     echo "del $key" `$rediscli del $key`
@@ -37,7 +37,7 @@ c0metrics() {
 }
 
 c0end() {
-  id=`$rediscli lrange $ns:ids -1 -1`
+  id=`$rediscli lrange $ns:service:ids -1 -1`
   if [ -n "$id" ]
   then
     key="$ns:$id"
@@ -46,14 +46,19 @@ c0end() {
   fi
 }
 
-c0kill() {
-  id=`$rediscli lrange $ns:ids -1 -1`
-  if [ -n "$id" ]
+c1kill() {
+  id=$1
+  pid=`$rediscli hget $ns:service:$id pid`
+  if [ -n "$pid" ]
   then
-    pid=`$rediscli hget $ns:$id pid`
     echo "kill $pid for $id"
     kill $pid
   fi
+}
+
+c0kill() {
+  id=`$rediscli lrange $ns:service:ids 0 0`
+  echo "$id" | grep -q '^[0-9]' && c1kill $id
 }
 
 c0done() {
@@ -89,7 +94,7 @@ c0state() {
       echo $key
     fi
   done
-  for list in in ids message:ids pending out0 out1
+  for list in service:ids message:ids in pending done out0 out1 
   do
     key="$ns:$list"
     echo "llen $key" `$rediscli llen $key` '--' `$rediscli lrange $key 0 99`
