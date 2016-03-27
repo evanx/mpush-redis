@@ -328,9 +328,9 @@ async registerMessage(message) {
    }
 ```
 where `xid` is the "extracted" intrinsic id of the message as follows:
-- if the message itself is a number, then take this number
-- `message.meta.id` if this exists
-- the SHA1 hash of the message
+- if the message itself is a number, then take this as the `xid`
+- otherwise `message.meta.id` if this exists
+- failing the above, the SHA1 hash of the message as the `xid`
 
 
 We set a cross-referencing key for a subscriber service instance to lookup the message id:
