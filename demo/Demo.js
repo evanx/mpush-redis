@@ -13,7 +13,7 @@ export default class Demo {
       setTimeout(async () => {
          for (const message in messages) {
             this.logger.info('push', this.props.in, message);
-            await this.redisClient.lpush(this.props.in, message);
+            await this.redisClient.lpushAsync(this.props.in, message);
          }
          setTimeout(async () => {
             let [[id0], [id1]] = await this.redisClient.multiExecAsync(multi => {
