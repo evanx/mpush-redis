@@ -162,18 +162,18 @@ At startup, the service will perform the following Redis commands to "register" 
 
 For example, the `serviceExpire` is defaulted to 60 seconds, whereas the renewal period is 15 seconds.
 ```
-INFO renew: started demo:mpush:9 15
+INFO renew: started demo:mpush:service:9 15
 ```
 So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
 
 ```
-redis-cli ttl demo:mpush:service:13
+redis-cli ttl demo:mpush:service:9
 <hr>
 (integer) 54
 ```
 
 ```
-redis-cli hkeys demo:mpush:9
+redis-cli hkeys demo:mpush:service:9
 <hr>
 1) "host"
 2) "pid"
@@ -187,12 +187,12 @@ Additionally, we enlist activated ids as follows:
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
 
 ```
-INFO Service: registered demo:mpush:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
+INFO Service: registered demo:mpush:service:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
 ```
 
 We can get the latest service id, and inspect its hashes:
 ```
-redis-cli lrange demo:mpush:ids -1 -1
+redis-cli lrange demo:mpush:service:ids -1 -1
 1) "9"
 ```
 
@@ -213,14 +213,14 @@ redis-cli hgetall demo:mpush:1
 - `lrem :ids -1 $id` i.e. scanning from the tail
 
 ```
-INFO Service: ended demo:mpush:9 { del: 1, lrem: 0 }
+INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
 ```
 
 #### pid
 
 Test this using `kill $pid`
 ```
-id=`redis-cli lrange demo:mpush:ids -1 -1`
+id=`redis-cli lrange demo:mpush:service:ids -1 -1`
 pid=`redis-cli hget demo:mpush:$id pid`
 kill $pid
 ```
@@ -233,8 +233,8 @@ Services can be shutdown manually via Redis too:
 
 For example:
 ```
-redis-cli del demo:mpush:9
-redis-cli lrem demo:mpush:ids -1 9
+redis-cli del demo:mpush:service:9
+redis-cli lrem demo:mpush:service:ids -1 9
 ```
 
 #### Startup
