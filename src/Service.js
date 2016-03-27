@@ -215,7 +215,7 @@ export default class Service {
             const props = require('../demo/props');
             this.readyComponent = new Demo('demo');
             return props;
-         } else if (arg === 'auto') {
+         } else if (arg === 'autodemo') {
             const props = require('../demo/props');
             this.readyComponent = new Demo('demo', {auto: true});
             return props;
