@@ -275,6 +275,10 @@ Further efforts will be taken, as follows:
 
 ### Message tracking for timeouts and retries
 
+We provide optional components to monitor:
+- timeouts, for metrics and retries
+- expiry, for garbage-collection
+
 A similar mechanism as that described above for tracking services, is used for tracking messages, as follows:
 - `incr :message:id` to obtain a sequential unique message `$id`
 - `exists :message:$id` to check that the message key does not exist.
@@ -311,6 +315,8 @@ redis-cli hgetall demo:mpush:message:3
 6) "12345"
 ```
 We record the "deadline" time calculated as `timestamp + timeout.` Suffice it to say that replica instances might have different timeouts, e.g. during rolling reconfigurations.
+
+#### xid
 
 We determine the `xid` as follows:
 ```javascript
@@ -353,11 +359,6 @@ redis-cli -n 1 hgetall demo:mpush:metrics:timeout
 1) "count"
 2) "6"
 ```
-
-We require processors to monitor:
-- timeouts, for metrics and retries
-- expiry, for garbage-collection
-
 
 #### Expire monitor
 
