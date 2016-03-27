@@ -117,18 +117,13 @@ The specified config file is loaded via `require()` and so can be a `.js` or a `
 ```shell
 evans@eowyn:~/mpush-redis$ cat ~/config/mpush-redis.js
 ```
+For example the following configuration specifies a `serviceRedis` and `serviceNamespace` to enable "advanced" features e.g. service registration, message timeouts, and other metrics.
 
 ```javascript
 module.exports = {
-   redis: 'redis://localhost:6379/1',
+   redis: 'redis://localhost:6379/0',
    serviceRedis: 'redis://localhost:6379/1',
    serviceNamespace: 'demo:mpush',
-   serviceExpire: 60,
-   serviceRenew: 10,
-   serviceCapacity: 10,
-   messageExpire: 30,
-   messageTimeout: 10,
-   messageCapacity: 1000,
    popTimeout: 10,
    in: 'demo:mpush:in',
    pending: 'demo:mpush:pending',
