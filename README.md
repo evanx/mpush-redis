@@ -386,7 +386,11 @@ We update `:metrics:$name` hashes with fields `{count, sum, max}.`
 
 The average time can be calculated by dividing `sum/count.`
 
-We plan to include histogram data e.g. counting the response times falling between various factors of the timeout, e.g. under .1, between .1 and .2, and similar intervals up to a maximum factor of `1,` as well as the number of timeouts.
+We plan to include histogram data e.g. counting the response times falling between various factors of the timeout:
+- under .1
+- between .1 and .2
+- and similar intervals up to a maximum factor of `1` 
+- as well as the number of timeouts.
 
 
 ### Related projects
