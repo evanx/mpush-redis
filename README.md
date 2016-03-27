@@ -246,11 +246,6 @@ The `vpush` microservice must:
 We will implement another microservice, namely `lpush,` for the case where input and output queues are on the same Redis instance. This implementation will use `multi.`
 
 
-#### Redex
-
-While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
-
-
 ### Multiple repos vs a unified toolkit
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
@@ -277,6 +272,13 @@ While Node.js might not be as performant as Go or Rust for example, we neverthel
 
 "Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
 
-My "holy grail" would be building a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring, and service orchestration.
+My "stretch goal" would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring and service orchestration.
 
-I'm interested in applying this to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
+I'd interested in applying that to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
+
+
+### Further reading
+
+#### Redex
+
+While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
