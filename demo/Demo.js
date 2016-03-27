@@ -13,11 +13,12 @@ export default class Demo {
       setTimeout(async () => {
          for (const message of messages) {
             this.logger.info('push', this.props.in, message);
+            await this.service.delay(500);
             await this.redisClient.lpushAsync(this.props.in, message);
          }
          setTimeout(async () => {
             let [[id0], [id1]] = await this.redisClient.multiExecAsync(multi => {
-               logger.info('lrange', this.props.out[0]);
+               logger.info('lrange', this.props.out);
                multi.lrange(this.props.out[0], 0, 0);
                multi.lrange(this.props.out[1], 0, 0);
             });
@@ -25,7 +26,7 @@ export default class Demo {
             assert.equal(id0, lodash.last(messages), 'last id');
             assert.equal(id1, lodash.last(messages), 'last id');
             this.service.end();
-         }, 4000);
+         }, 1000);
       }, 1000);
    }
 
