@@ -255,7 +255,7 @@ While this repo presents a standalone utility for a specific requirement, it is 
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
 
-However, the idea of "immutable microservices" appeals to me. We'll see how that goes.
+However, the idea of "immutable microservices" appeals to me. We'll see how it goes.
 
 
 ### Further plans
