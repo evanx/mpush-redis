@@ -134,6 +134,10 @@ Suffice it to say that if a service fails to renew its hashes, i.e. it's heartbe
 
 Incidently, services should perform a startup assert that its hashes key does not exist, as a sanity check.
 
+As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
+
+Incidently, to mitigate the risk of services colliding in Redis due to undetected bugs and/or misconfiguration, one can configure a `serviceRedis` URL together with the `serviceNamespace`, and so provision dedicated Redis instances for various pods of services.
+
 Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
