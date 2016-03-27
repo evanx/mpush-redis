@@ -80,7 +80,8 @@ When the pop yields a message, this service must push this message into the para
 Let's manually test this by pushing an incoming message into `:in`
 
 ```shell
-evanx@eowyn:~/mpush-redis$ redis-cli lpush demo:mpush:in one
+redis-cli lpush demo:mpush:in one
+
 (integer) 1
 ```
 
@@ -95,11 +96,14 @@ lpush demo:mpush:out1 one
 
 We check that the message is moved to the parallel output queues.
 ```shell
-evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out0 0 -1
+redis-cli lrange demo:mpush:out0 0 -1
+
 1) "one"
 ```
+
 ```shell
-evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
+redis-cli lrange demo:mpush:out1 0 -1
+
 1) "one"
 ```
 
@@ -109,7 +113,7 @@ evanx@eowyn:~/mpush-redis$ redis-cli lrange demo:mpush:out1 0 -1
 Specify the configuration file via the `propsFile` environment variable.
 
 ```shell
-evanx@eowyn:~/mpush-redis$ propsFile=~/config/mpush-redis.js npm start
+propsFile=~/config/mpush-redis.js npm start
 ```
 
 The specified config file is loaded via `require()` and so can be a `.js` or a `.json` file.
@@ -171,6 +175,7 @@ redis-cli ttl demo:mpush:service:9
 
 (integer) 54
 ```
+where the `TTL` is 54 seconds, i.e. it was renewed 6 seconds ago.
 
 ```
 redis-cli hkeys demo:mpush:service:9
@@ -193,11 +198,13 @@ INFO Service: registered demo:mpush:service:9 { host: 'eowyn', pid: 19897, start
 We can get the latest service id, and inspect its hashes:
 ```
 redis-cli lrange demo:mpush:service:ids -1 -1
+
 1) "9"
 ```
 
 ```
 redis-cli hgetall demo:mpush:1
+
 1) "host"
 2) "eowyn"
 3) "pid"
@@ -266,6 +273,7 @@ A similar mechanism as that described above for tracking services, is used for t
 Before we push a message, let's check the current sequential `:message:id`
 ```
 redis-cli get demo:mpush:message:id
+
 2
 ```
 So the next message will be assigned an `id` of `3.`
@@ -278,12 +286,14 @@ redis-cli lpush demo:mpush:in 12345
 We check the latest message id:
 ```
 redis-cli lrange demo:mpush:message:ids 0 -1
+
 3
 ```
 
 And the `:message:$id` hashes:
 ```
 redis-cli hgetall demo:mpush:message:3
+
 1) "timestamp"
 2) "1459086813"
 3) "xid"
@@ -317,6 +327,7 @@ where `xid` is "extracted" id of the message as follows:
 We set a cross-referencing key for a subscriber service instance to lookup the message id:
 ```
 redis-cli hgetall demo:mpush:message:xid:12345
+
 1) "id"
 2) "3"
 3) "type"
@@ -328,6 +339,7 @@ This enables the downstream subscriber service which processes this message, to 
 
 ```
 redis-cli -n 1 hgetall demo:mpush:metrics:timeout
+
 1) "count"
 2) "6"
 ```
