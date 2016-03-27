@@ -229,7 +229,7 @@ INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
 Test this using `kill $pid`
 ```
 id=`redis-cli lrange demo:mpush:service:ids -1 -1`
-pid=`redis-cli hget demo:mpush:$id pid`
+pid=`redis-cli hget demo:mpush:service:$id pid`
 kill $pid
 ```
 
