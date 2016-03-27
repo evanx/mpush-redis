@@ -248,7 +248,7 @@ We will implement another microservice, namely `lpush,` for the case where input
 
 #### Redex
 
-While this is a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
+While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
 
 
 ### Multiple repos vs a unified toolkit
