@@ -158,7 +158,9 @@ Note that the `service*` and `message*` props are only required if the `serviceN
 
 An optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.
 
-At startup, the service will perform the following to "register" itself:
+#### Registration and renewal
+
+At startup, the service will perform the following Redis commands to "register" itself:
 - `incr :id` to obtain a unique service instance `id`
 - `hmset :$id` to record `{host, pid, started}` et al
 - `expire :$id $serviceExpire` but renew at an interval sufficiently less than `$serviceExpire`
@@ -186,11 +188,23 @@ Additionally, we enlist activated ids as follows:
 INFO Service: registered demo:mpush:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
 ```
 
-We can get the latest service id as follows:
+We can get the latest service id, and inspect its hashes:
 ```
 redis-cli lrange demo:mpush:ids -1 -1
 1) "9"
 ```
+
+```
+redis-cli hgetall demo:mpush:1
+1) "host"
+2) "eowyn"
+3) "pid"
+4) "32534"
+5) "started"
+6) "1459049541"
+```
+
+#### SIGTERM
 
 `SIGTERM` should result in a clean shutdown:
 - `del :$id`
@@ -200,12 +214,16 @@ redis-cli lrange demo:mpush:ids -1 -1
 INFO Service: ended demo:mpush:9 { del: 1, lrem: 0 }
 ```
 
+#### pid
+
 Test this using `kill $pid`
 ```
 id=`redis-cli lrange demo:mpush:ids -1 -1`
 pid=`redis-cli hget demo:mpush:$id pid`
 kill $pid
 ```
+
+#### Shutdown
 
 Services can be shutdown manually via Redis too:
 - `del :$id` to delete the service hashes key, which should cause a shutdown
@@ -216,6 +234,8 @@ For example:
 redis-cli del demo:mpush:9
 redis-cli lrem demo:mpush:ids -1 9
 ```
+
+#### Startup
 
 At startup, the service compacts the listed active `:ids` as follows.
 - if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
