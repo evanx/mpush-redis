@@ -63,7 +63,7 @@ export default class MessagePending {
             this.logger.info('removed', {id, meta, deadline, timeout}, multiResults.join(' '));
             return;
          }
-         this.logger.info('pending', {id, meta});
+         this.logger.info('pending', id, meta);
       }
    }
 
