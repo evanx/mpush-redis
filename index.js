@@ -22,7 +22,7 @@ require("babel-polyfill");
 require('babel-core/register');
 global.logger.debug('babel registered');
 
-global.Invariants = require('./src/Invariants');
+var props = require('./src/Invariants.props');
 
 global.loggerLevel = 'info';
 if (process.env.loggerLevel) {
@@ -32,7 +32,8 @@ if (process.env.loggerLevel) {
 }
 global.Loggers = require('./src/Loggers');
 global.Asserts = require('./src/Asserts');
-global.Invariants.start();
+global.Invariants = require('./src/Invariants');
+global.Invariants.start(props);
 var Service = require('./src/Service').default;
 //logger.debug('App', typeof App, Object.keys(App));
 global.service = new Service();
