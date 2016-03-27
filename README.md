@@ -327,7 +327,7 @@ async registerMessage(message) {
       xidMeta.type = 'sha1';
    }
 ```
-where `xid` is the "extracted" id of the message as follows:
+where `xid` is the "extracted" intrinsic id of the message as follows:
 - if the message itself is a number, then take this number
 - `message.meta.id` if this exists
 - the SHA1 hash of the message
