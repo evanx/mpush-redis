@@ -203,7 +203,7 @@ redis-cli lrange demo:mpush:service:ids -1 -1
 ```
 
 ```
-redis-cli hgetall demo:mpush:1
+redis-cli hgetall demo:mpush:service:9
 
 1) "host"
 2) "eowyn"
