@@ -136,8 +136,6 @@ Incidently, services should perform a startup assert that its hashes key does no
 
 As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
 
-Incidently, to mitigate the risk of services colliding in Redis due to undetected bugs and/or misconfiguration, one can configure a `serviceRedis` URL together with the `serviceNamespace`, and so provision dedicated Redis instances for various pods of services.
-
 Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
 - `ltrim :ids 0 $serviceCapacity` to ensure that `:ids` is bounded.
@@ -181,6 +179,11 @@ At startup, the service compacts the listed active `:ids` as follows.
 - if any `:$id` (service hashes key) has expired or was deleted, then `lrem :ids -1 $id`
 
 Therefore in the event of a service not shutting down gracefully, the stale `id` will be removed from the `:ids` list automatically at a later time. This will occur after its hashes have expired e.g. 60 seconds after the last renewal.
+
+
+#### Risk mitigration
+
+Incidently, to mitigate the risk of services colliding in Redis due to undetected bugs and/or misconfiguration, one can configure a `serviceRedis` URL together with the `serviceNamespace`, and so provision dedicated Redis instances for various pods of services. Further efforts can be taken, e.g. to validate keys in the Redis client, to ensure that some erroneous service does not modify keys outside its configured namespace. 
 
 
 ### Message tracking for timeouts and retries
