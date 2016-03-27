@@ -325,7 +325,7 @@ redis-cli hgetall demo:mpush:message:xid:12345
 ```
 where the `type` indicates the incoming message itself was a number, i.e. `12345.`
 
-This enables the downstream service which processes this message to lookup its `id` in order to push it into `:done,`  otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
+This enables the downstream subscriber service which processes this message, to lookup its `id` in order to push it into `:done,`  otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 
 ```
 redis-cli -n 1 hgetall demo:mpush:metrics:timeout
