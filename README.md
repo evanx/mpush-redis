@@ -210,24 +210,22 @@ redis-cli hgetall demo:mpush:service:9
 
 #### SIGTERM
 
-`SIGTERM` should result in a clean shutdown, including the following:
-- `del :service:$id`
-- `lrem :service:ids -1 $id` i.e. scanning from the tail
-
-We observe the results in the logs:
-```
-INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
-```
-
-#### pid
-
-We can `kill` the latest service instance as follows:
+For example, we can `kill` the latest service instance as follows:
 ```
 id=`redis-cli lrange demo:mpush:service:ids 0 0`
 pid=`redis-cli hget demo:mpush:service:$id pid`
 kill $pid
 ```
 where we get the latest service id from the registration list, get its `pid` from its hashes, and kill that process.
+
+We observe the logs:
+```
+INFO entry: SIGTERM
+INFO Service: ended demo:mpush:service:9 { del: 1, lrem: 0 }
+```
+where the following cleanup commands are performed:
+- `del :service:$id`
+- `lrem :service:ids -1 $id` i.e. scanning from the tail
 
 
 #### Remote shutdown via Redis
