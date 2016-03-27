@@ -195,13 +195,14 @@ Additionally, we enlist activated ids as follows:
 INFO Service: registered demo:mpush:service:9 { host: 'eowyn', pid: 19897, started: 1458970058 }
 ```
 
-We can get the latest service id, and inspect its hashes:
+We can get the latest service id:
 ```
 redis-cli lrange demo:mpush:service:ids -1 -1
 
 1) "9"
 ```
 
+And inspect its hashes:
 ```
 redis-cli hgetall demo:mpush:service:9
 
