@@ -173,7 +173,7 @@ redis-cli hkeys demo:mpush:9
 3) "started"
 4) "renewed"
 ```
-The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if a service fails to renew its hashes, i.e. it's heartbeat monitor fails, then it must exit. Incidently, services should perform a startup assert that its hashes key does not exist, as a sanity check. As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
+The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if a service fails to renew its hashes, i.e. it's heartbeat monitor fails, then it must exit. Incidently, services should perform a startup assert that its key does not exist. The service should routinely ensure the existence of its key, e.g. before its `brpoplpush` operation, and otherwise exit. As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
 
 Additionally, we enlist activated ids as follows:
 - `lpush :ids $id`
