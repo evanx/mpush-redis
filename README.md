@@ -167,7 +167,14 @@ INFO renew: started demo:mpush:9 15
 So every 15 seconds, the TTL of the service `:id` hashes will be renewed to 60 seconds. If the service stops running, then its hashes will automatically expire after 60 seconds.
 
 ```
+redis-cli ttl demo:mpush:service:13
+<hr>
+(integer) 54
+```
+
+```
 redis-cli hkeys demo:mpush:9
+<hr>
 1) "host"
 2) "pid"
 3) "started"
