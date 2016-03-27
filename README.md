@@ -151,6 +151,8 @@ INFO Service:
       messageCapacity: 1000 }
 ```
 
+Note that the `service*` and `message*` props are only required if the `serviceRedis` URL is set.
+
 ### Lifecycle management
 
 If an optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.
