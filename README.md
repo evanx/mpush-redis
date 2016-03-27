@@ -453,9 +453,11 @@ I believe that Redis, Node, ES2016, React and stateless microservices are relati
 - Node is great for small codebases like microservices
 - ES2016 async/await is great for Node
 
-My "stretch goal" would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage and shared memory/state for "stateless" microservices. I also favour Redis as a tool for metrics/monitoring and service orchestration.
+My "holy grail" goal would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and "declarative" service orchestration.
 
-I'd interested in applying that to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
+For example, setting the number of replicas for a service in Redis, should enable the activation of standby instances, the automatic provisioning of additional instances, and/or the shutdown of excess instances. The performance and health of services (and hosts) will be monitored via metrics published via Redis, e.g. to rollback faulty updates.
+
+I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a insane learning experience.
 
 
 #### rquery
