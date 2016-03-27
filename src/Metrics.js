@@ -20,7 +20,7 @@ export default class Metrics {
    async count(name, ...args) {
       try {
          const hashesKey = this.redisKey(name);
-         this.logger.debug('counter', name, hashesKey, args);
+         this.logger.debug('count', name, hashesKey, args);
          await this.redisClient.multiExecAsync(multi => {
             logger.debug('count', hashesKey);
             multi.hincrby(hashesKey, 'count', 1);
@@ -35,7 +35,24 @@ export default class Metrics {
       try {
          const hashesKey = this.redisKey(name);
          const max = await this.redisClient.hgetAsync(hashesKey, 'max');
-         this.logger.debug('done', name, value, args);
+         this.logger.debug('sum', name, value, args);
+         this.redisClient.multiExecAsync(multi => {
+            multi.hincrby(hashesKey, 'count', 1);
+            multi.hincrby(hashesKey, 'sum', value);
+            if (!max || value > max) {
+               multi.hset(hashesKey, 'max', value);
+            }
+         });
+      } catch (err) {
+         this.service.error(this, err);
+      }
+   }
+
+   async histo(name, value, nominalValue, ...args) {
+      try {
+         const hashesKey = this.redisKey(name);
+         const max = await this.redisClient.hgetAsync(hashesKey, 'max');
+         this.logger.debug('histo', name, value, args);
          this.redisClient.multiExecAsync(multi => {
             multi.hincrby(hashesKey, 'count', 1);
             multi.hincrby(hashesKey, 'sum', value);

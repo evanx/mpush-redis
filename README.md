@@ -386,7 +386,7 @@ We update `:metrics:$name` hashes with fields `{count, sum, max}.`
 
 The average time can be calculated by dividing `sum/count.`
 
-We plan to include histogram data e.g. counting the times falling between "tenth percentile" intervals of the timeout, e.g. under 10%, and up to between 90% to 100%, as well as the number of timeouts, i.e. greater than 100%.
+We plan to include histogram data e.g. counting the response times falling between various factors of the timeout, e.g. under .1, between .1 and .2, and similar intervals up to a maximum factor of `1,` as well as the number of timeouts.
 
 
 ### Related projects

@@ -7,7 +7,7 @@ export default class MessagePending {
 
    async start(state) {
       Object.assign(this, state);
-      this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'redisNamespace');
+      this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'serviceNamespace');
       this.redisClient = service.createRedisClient(this.props.redis);
       this.runPromise = this.run();
    }
