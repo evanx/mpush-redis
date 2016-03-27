@@ -282,7 +282,7 @@ redis-cli lrange demo:mpush:message:ids 0 -1
 3
 ```
 
-And the :message:$id` hashes:
+And the `:message:$id` hashes:
 ```
 redis-cli hgetall demo:mpush:message:3
 1) "timestamp"
