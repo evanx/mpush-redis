@@ -137,6 +137,20 @@ module.exports = {
 };
 ```
 
+#### Default props
+
+Default values for props are reported as follows:
+```
+INFO Service:
+    defaultProps {
+      serviceExpire: 60,
+      serviceRenew: 15,
+      serviceCapacity: 10,
+      messageExpire: 60,
+      messageTimeout: 10,
+      messageCapacity: 1000 }
+```
+
 ### Lifecycle management
 
 If an optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for lifecycle management, and metrics.

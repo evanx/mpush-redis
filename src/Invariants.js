@@ -1,7 +1,6 @@
 
 var props = {
    serviceExpire: {
-      type: 'integer',
       defaultValue: 60,
       min: 30,
    },
@@ -9,14 +8,22 @@ var props = {
       defaultValue: 15,
       min: 5
    },
+   serviceCapacity: {
+      defaultValue: 10
+   },
+   messageExpire: {
+      defaultValue: 60
+   },
+   messageTimeout: {
+      defaultValue: 10
+   },
+   messageCapacity: {
+      defaultValue: 1000
+   },
    popTimeout: {
       max: 30
-   },
-   serviceCapacity: {
-      min: 1,
-      defaultValue: 10
    }
-}
+};
 
 var that = {
    defaultProps: {},
@@ -31,6 +38,7 @@ var that = {
 
 function initProps() {
    Object.keys(props).forEach(function(key) {
+      props[key].key = key;
       var defaultValue = props[key].defaultValue;
       if (defaultValue) {
          that.defaultProps[key] = defaultValue;
