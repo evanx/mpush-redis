@@ -191,9 +191,11 @@ export default class Service {
       }
       await this.delay(1000);
       if (this.redisClient) {
+         const listKey = this.redisKey('service:ids');
          const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
+            logger.debug('remove', this.key, listKey, this.id);
             multi.del(this.key);
-            multi.lrem(this.redisKey('service:ids'), -1, this.id);
+            multi.lrem(listKey, -1, this.id);
          });
          await this.redisClient.quitAsync();
          this.logger.info('ended', this.key, {del, lrem});
