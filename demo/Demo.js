@@ -18,7 +18,7 @@ export default class Demo {
             await this.redisClient.lpushAsync(this.props.in, message);
          }
          setTimeout(async () => {
-            if (options.auto) {
+            if (options && options.auto) {
                let [[id0], [id1]] = await this.redisClient.multiExecAsync(multi => {
                   logger.info('lrange', this.props.out);
                   multi.lrange(this.props.out[0], 0, 0);
