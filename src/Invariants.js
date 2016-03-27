@@ -4,7 +4,7 @@
 var that = {
    defaultProps: {},
    validateProps: function(p) {
-      Asserts.assertIntMax(p.serviceRenew, 'serviceRenew', p.serviceExpire - 5);
+      Asserts.assertIntegerMax(p.serviceRenew, 'serviceRenew', p.serviceExpire - 5);
    },
    start: function(props) {
       Object.keys(props).forEach(function(key) {
@@ -17,6 +17,39 @@ var that = {
       console.log('defaultProps', that.defaultProps);
       that.validateProps(that.defaultProps);
       that.props = props;
+   },
+   validate(name, value) {
+      var meta = that.props[name];
+      if (meta) {
+         if (value === undefined) {
+            if (!meta.optional) {
+               throw new Error(`missing ${name}`);
+            }
+         }
+         if (meta.min) {
+            if (value >= meta.min) {
+            } else {
+               throw new Error(`${name} (${value}) min ${meta.min}`);
+            }
+         }
+         if (meta.max) {
+            if (value > meta.max) {
+               throw new Error(`${name} (${value}) max ${meta.max}`);
+            }
+         }
+      }
+      return value;
+   },
+   validateInteger(name, value) {
+      return that.validate(name, value);
+   },
+   validateIntegerMin(name, value, min) {
+      that.validate(name, value);
+      if (value >= min) {
+      } else {
+         throw new Error(`${name} (${value}) min ${min}`);
+      }
+      return value;
    }
 };
 

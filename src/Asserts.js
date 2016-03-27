@@ -20,12 +20,12 @@ module.exports = {
       assert(typeof value === 'string', name);
       return value;
    },
-   assertInt(value, name) {
+   assertInteger(value, name) {
       assert(value, name);
-      assert(Number.isInteger(value), name);
+      assert(parseInt(value) === value, name);
       return value;
    },
-   assertIntMax(value, name, max) {
+   assertIntegerMax(value, name, max) {
       if (!max) {
          max = Invariants.props[name].max;
       }
@@ -34,7 +34,7 @@ module.exports = {
       assert(value <= max, format('max', {name, value, max}));
       return value;
    },
-   assertIntMin(value, name, min) {
+   assertIntegerMin(value, name, min) {
       if (!min) {
          min = Invariants.props[name].min;
       }

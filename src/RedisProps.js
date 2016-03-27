@@ -1,7 +1,5 @@
 
-import fs from 'fs';
-
-export default class Props  { // support Redis-based config
+export default class RedisProps  { // support Redis-based config
 
    constructor(name) {
       this.name = name;

@@ -15,13 +15,27 @@ import MessageRegister from './MessageRegister';
 import Metrics from './Metrics';
 import ServiceRenew from './ServiceRenew';
 
+global.ServiceError = function() {
+  this.constructor.prototype.__proto__ = Error.prototype;
+  Error.captureStackTrace(this, this.constructor);
+  this.name = this.constructor.name;
+  this.message = JSON.stringify(args);
+}
+
+global.ValidationError = function(...args) {
+  this.constructor.prototype.__proto__ = Error.prototype;
+  Error.captureStackTrace(this, this.constructor);
+  this.name = this.constructor.name;
+  this.message = JSON.stringify(args);
+}
+
 export default class Service {
 
    assertProps() {
       Asserts.assertString(this.props.redis, 'redis');
       Asserts.assertString(this.props.in, 'in');
       Asserts.assertString(this.props.pending, 'pending');
-      Asserts.assertIntMin(this.props.popTimeout, 'popTimeout', 5);
+      Asserts.assertIntegerMin(this.props.popTimeout, 'popTimeout', 5);
       Asserts.assertStringArray(this.props.out, 'out');
    }
 
@@ -112,7 +126,7 @@ export default class Service {
       const redisTime = await this.redisClient.timeAsync();
       this.startTimestamp = parseInt(redisTime[0]);
       Asserts.assertString(this.props.serviceNamespace, 'serviceNamespace');
-      Asserts.assertIntMin(this.props.serviceExpire, 'serviceExpire');
+      Asserts.assertIntegerMin(this.props.serviceExpire, 'serviceExpire');
       this.id = parseInt(await this.redisClient.incrAsync(this.redisKey('id')));
       this.key = this.redisKey(this.id);
       this.meta = {

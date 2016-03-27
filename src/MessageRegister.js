@@ -45,9 +45,12 @@ export default class MessageRegister {
       } else {
          assert(this.props.messageExpire > 0, 'messageExpire');
          const multiResults = await this.redisClient.multiExecAsync(multi => {
-            logger.debug('register', id, timestamp, xid, xidMeta);
+            Asserts.assertInteger(this.props.messageTimeout, 'messageTimeout');
+            const deadline = parseInt(timestamp) + this.props.messageTimeout;
+            const hashes = {deadline, timestamp, xid};
+            logger.debug('register', id, hashes, xidMeta);
             multi.lpush(this.redisKey('ids'), id);
-            multi.hmset(this.redisKey(id), {timestamp, xid});
+            multi.hmset(this.redisKey(id), hashes);
             multi.expire(this.redisKey(id), this.props.messageExpire);
             if (xid) {
                const key = this.redisKey('xid', xid);

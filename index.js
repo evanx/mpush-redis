@@ -9,6 +9,22 @@ global.lodash = require('lodash');
 global.os = require('os');
 global.redisLib = require('redis');
 
+global.ServiceError = function() {
+  this.constructor.prototype.__proto__ = Error.prototype;
+  Error.captureStackTrace(this, this.constructor);
+  this.name = this.constructor.name;
+  var args = [].slice.call(arguments);
+  this.message = JSON.stringify(args);
+}
+
+global.ValidationError = function() {
+  this.constructor.prototype.__proto__ = Error.prototype;
+  Error.captureStackTrace(this, this.constructor);
+  this.name = this.constructor.name;
+  var args = [].slice.call(arguments);
+  this.message = JSON.stringify(args);
+}
+
 global.logger = global.bunyan.createLogger({name: 'entry', level: 'debug'});
 
 bluebird.promisifyAll(redisLib.RedisClient.prototype);
@@ -23,7 +39,7 @@ require("babel-polyfill");
 require('babel-core/register');
 global.logger.debug('babel registered');
 
-var props = require('./src/Invariants.props');
+var propsMeta = require('./src/Service.props');
 
 global.loggerLevel = 'info';
 if (process.env.loggerLevel) {
@@ -34,7 +50,7 @@ if (process.env.loggerLevel) {
 global.Loggers = require('./src/Loggers');
 global.Asserts = require('./src/Asserts');
 global.Invariants = require('./src/Invariants');
-global.Invariants.start(props);
+global.Invariants.start(propsMeta);
 var Service = require('./src/Service').default;
 //logger.debug('App', typeof App, Object.keys(App));
 global.service = new Service();

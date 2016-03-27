@@ -303,11 +303,14 @@ redis-cli lrange demo:mpush:message:ids 0 -1
 And the `:message:$id` hashes:
 ```
 redis-cli hgetall demo:mpush:message:3
-1) "timestamp"
-2) "1459086813"
-3) "xid"
-4) "12345"
+1) "deadline"
+2) "1459103237"
+3) "timestamp"
+4) "1459103227"
+5) "xid"
+6) "12345"
 ```
+where the `deadline` is the `timestamp + messageTimeout.` Suffice it to say that replica instances might have different timeouts, e.g. during rolling reconfigurations.
 
 We determine the `xid` as follows:
 ```javascript
@@ -387,9 +390,9 @@ We update `:metrics:$name` hashes with fields `{count, sum, max}.`
 The average time can be calculated by dividing `sum/count.`
 
 We plan to include histogram data e.g. counting the response times falling between various factors of the timeout:
-- under .1
-- between .1 and .2
-- and similar intervals up to a maximum factor of `1` 
+- `[0, 0.1]`
+- `[0.1, 0.2]`
+- and similar intervals up to a `[0, 1]`
 - as well as the number of timeouts.
 
 

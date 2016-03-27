@@ -24,7 +24,6 @@ export default class MessagePending {
                await this.service.validate();
                await this.peekPending();
             }
-            await this.service.delay(1000);
          } catch (err) {
             this.service.error(this, err);
             break;
@@ -42,7 +41,7 @@ export default class MessagePending {
          multi.llen(listKey);
       });
       if (!id) {
-         await this.service.delay(2000);
+         await this.service.delay(800);
       } else {
          this.logger.debug('peekPending', this.props.pending, timestamp, id, length);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
