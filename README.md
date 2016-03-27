@@ -428,6 +428,37 @@ My "stretch goal" would be demonstrating a resilient auto-scaling distributed we
 I'd interested in applying that to a news publishing platform, that retrieves article data stored in Redis, and uses React "templating" to render web pages.
 
 
+#### rquery
+
+It is envisaged that `rquery` service will accept an array of Redis commands, and return the requested data.
+
+```javascript
+{
+   paramaters: {
+      articleId: 12345
+   },
+   commands: [
+      {
+         command: "hget article:$articleId section"
+         save: "section"
+      },
+      {
+         command: "hget section:$section label"
+         save: "label"
+      }
+   ]
+}
+```
+where this might return the following results:
+```
+{
+   values: {
+      section: 'news',
+      label: 'News'
+   }
+}   
+```
+
 ### Further reading
 
 #### Redex
