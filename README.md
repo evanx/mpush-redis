@@ -430,10 +430,10 @@ ave=$[ 657/63 ]
 10
 ```
 
-In the case of response times (according to the `:message:done` notification queue), we see other histogram intervals e.g. `histo10` counts the number of response times between 10% to 20% of the `messageTimeout`
+In the case of response times (according to the `:message:done` notification queue), we see other histogram intervals e.g. `histo20` counts the number of response times between 20% to 30% of the `messageTimeout`
 ```
 redis-cli hgetall demo:mpush:metrics:done
- 1) "histo80"
+ 1) "histo20"
  2) "2"
  3) "count"
  4) "6"
