@@ -394,12 +394,21 @@ redis-cli hgetall demo:mpush:metrics:timeout
 
 The average time can be calculated by dividing `sum/count.`
 
-We plan to include histogram data e.g. counting the response times falling between various factors of the timeout:
-- `[0, 0.1]`
-- `[0.1, 0.2]`
-- and similar intervals up to a `[0, 1]`
+We plan to include histogram data e.g. counting the response times falling between 10% intervals of the timeout:
+- `histo0` - `[0.0, 0.1]`
+- `histo10` - `[0.1, 0.2]`
+- similarly `histo20` through `histo80`
+- `histo90` - `[0.9, 1.0]`
+- `histo100` - `[1, 1]`
 - as well as the number of timeouts.
 
+Here is a code sample:
+```javascript
+const timeout = timestamp - messageTimestamp;
+await this.components.metrics.sum('timeout', timeout, id);
+await this.components.metrics.histo('timeout', Math.min(1, timeout/this.props.messageTimeout), id);
+```
+where we count timeout durations exceeding the `messageTimeout` as having a `normalizedValue` of `1.`
 
 ### Related projects
 
@@ -462,7 +471,7 @@ I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach
 
 #### rquery
 
-It is envisaged that `rquery` service will accept an array of Redis commands, and return the requested data.
+I'm imagine a `rquery` service will accept an array of Redis commands, and return the requested data.
 
 ```javascript
 {

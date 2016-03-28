@@ -51,11 +51,11 @@ export default class Metrics {
    async histo(name, normalizedValue, ...args) {
       try {
          Invariants.validateRangeInclusive(normalizedValue, [0, 1], 'normalizedValue');
-         const intervalIndex = Math.floor(normalizedValue*10);
+         const intervalIndex = Math.floor(normalizedValue*100);
          const hashesKey = this.redisKey(name);
          this.logger.debug('histo', name, normalizedValue, intervalIndex);
-         this.redisClient.multiExecAsync(multi => {
-            multi.hincrby(hashesKey, 'histogram' + intervalIndex, 1);
+         await this.redisClient.multiExecAsync(multi => {
+            multi.hincrby(hashesKey, 'histo' + intervalIndex, 1);
          });
       } catch (err) {
          this.service.error(this, err);
