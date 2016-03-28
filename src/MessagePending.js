@@ -63,6 +63,7 @@ export default class MessagePending {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
          });
+         const messageTimeout = this.props.messageTimeout;
          this.logger.debug('removed', {id, meta, messageTimeout, deadline, timestamp, timeout, del, lrem});
          return;
       }
