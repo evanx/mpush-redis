@@ -395,10 +395,10 @@ redis-cli hgetall demo:mpush:metrics:timeout
 The average time can be calculated by dividing `sum/count.`
 
 We plan to include histogram data e.g. counting the response times falling between 10% intervals of the timeout:
-- `histo0` - `[0.0, 0.1]` inclusive of `0` but exclusive of `0.1`
-- `histo10` - `[0.1, 0.2]`
+- `histo0` - `[0.0, 0.1)` i.e. inclusive of `0` but exclusive of `0.1`
+- `histo10` - `[0.1, 0.2)`
 - etc
-- `histo90` - `[0.9, 1]`
+- `histo90` - `[0.9, 1)`
 - `histo100` - `[1, 1]` i.e. the number of values greater or equal to the `timeout` interval
 
 Here is a code sample:
