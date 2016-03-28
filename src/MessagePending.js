@@ -59,11 +59,11 @@ export default class MessagePending {
          const timeout = timestamp - messageTimestamp;
          await this.components.metrics.sum('timeout', timeout, id);
          await this.components.metrics.histo('timeout', Math.min(1, timeout/this.props.messageTimeout), id);
-         const multiResults = await this.redisClient.multiExecAsync(multi => {
+         const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
          });
-         this.logger.debug('removed', {id, meta, messageTimeout, deadline, timestamp, timeout}, timeout/this.props.messageTimeout, multiResults.join(' '));
+         this.logger.debug('removed', {id, meta, messageTimeout, deadline, timestamp, timeout, del, lrem});
          return;
       }
    }
