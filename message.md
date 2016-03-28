@@ -1,11 +1,9 @@
 
-### Message lifecycle management
+### Message tracking for timeouts and retries
 
 An optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for message lifecycle management, as well as service lifecycle management and metrics.
 
 This can be complemented with an optional `serviceRedis` URL, for the related keys. Otherwise they are stored in the default Redis database, i.e. the same instance as the target `:in` and `:out` queues.
-
-### Message tracking for timeouts and retries
 
 We provide optional components to monitor:
 - timeouts, for metrics and retries
