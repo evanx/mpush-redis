@@ -54,14 +54,21 @@ var that = {
       }
       return that.parseTimestamp(timestamp, name) + that.parseInt(interval);
    },
-   ensureTimestamp(value, name) {
+   validateTimestamp(value, name) {
       var timestamp = that.parseTimestamp(value, name);
       if (!timestamp) {
          throw new Error(`${name} timestamp`);
       }
       return timestamp;
    },
-   ensureRangeInclusive(value, range, name) {
+   validateMinExclusive(value, min, name) {
+      if (value > min) {
+         return value;
+      } else {
+         throw new Error(`${name} (${value}) min ${min}`);
+      }
+   },
+   validateRangeInclusive(value, range, name) {
       if (value >= range[0] && value <= range[1]) {
          return value;
       } else {
