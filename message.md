@@ -60,16 +60,16 @@ async registerMessage(message) {
    const id = await this.redisClient.incrAsync(this.redisKey('id'));
    logger.debug('registerMessage', id);
    let xid;
-   let xidMeta = {id};
+   let xidHashes = {id};
    if (/^[0-9]+$/.test(message)) {
       xid = message;
-      xidMeta.type = 'number';
+      xidHashes.type = 'number';
    } else if (message.meta && message.meta.id) {
       xid = message.meta.id;
-      xidMeta.type = 'meta';
+      xidHashes.type = 'meta';
    } else {
       xid = this.service.sha1(message);
-      xidMeta.type = 'sha1';
+      xidHashes.type = 'sha1';
    }
 ```
 where `xid` is the "extracted" intrinsic id of the message as follows:

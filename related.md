@@ -30,16 +30,20 @@ However, the idea of "immutable microservices" appeals to me. We'll see how it g
 
 The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
 
-- v-push - transport messages to a remote Redis instance
-- m-dispatch - tracking messages for response handling, e.g. building a distributed web server
-- m-balance - push a message to a work queue with the lowest queue length
-- s-register - service self-registration for service discovery
-- c-scale - service orchestration triggered by Redis-based messaging
-- h-importer - import an HTTP request into a Redis queue for subsequent routing and processing
-- h-router - route an HTTP message by matching its URL (using regex)
-- h-assets - static webserver for serving assets
-- h-react - render a React template
-- r-query - retrieve application data from Redis
+- vpush - transport messages to a remote Redis instance
+- mdispatch - tracking messages for response handling, e.g. building a distributed web server
+- mbalance - push a message to a work queue with the lowest queue length
+- hfiler - file server for serving static assets i.e. a "static webserver"
+- hgateway - import an HTTP request into a Redis queue for subsequent routing and processing
+- hrouter - route an HTTP message by matching its URL (using regex)
+- hrender - render a React template
+- rquery - retrieve application data from Redis
+- rdeploy - NPM module installation triggered by Redis-based messaging
+- rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
+
+Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP.
+
+For example, the `hgateway` and `hfiler` services include a "web server" e.g. ExpressJS.
 
 While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
 
@@ -57,37 +61,84 @@ For example, setting the number of replicas for a service in Redis, should enabl
 
 I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a insane learning experience.
 
+#### hgateway
+
+This implements a "web server", i.e. accepts incoming HTTP requests e.g. via ExpressJS i.e. via TCP/IP socket. However, its purpose however is to merely to publish these into a Redis queue for further processing by other microservices. Those services will accept HTTP-request messages via a Redis queue, rather than a TCP/IP socket.
+
+`hgateway` must:
+- discover its configuration, including the HTTP port, via Redis hashes.
+- start webserver on the configured port i.e. `listen(PORT)` for incoming HTTP requests.
+- implement a request handler e.g. invoked by ExpressJS with `(req, res)`
+- schedule a timeout handler e.g. a closure with access to `res`
+- construct an HTTP request message i.e. including the URL, HTTP headers and "body content."
+- push this "immutable" message into a Redis list e.g. `hgateway:req`
+- `brpoplpush` a response message from a Redis list e.g. `hgateway:res`
+- respond to the original HTTP request via ExpressJS
+- ensure that the timeout handler will
+
+#### hfiler
+
+`hfiler` implements an HTTP service, meaning it processes HTTP messages. However it is not an "HTTP server" in the usual sense i.e. binding to a TCP/IP socket.
+
+Its purpose is to enable a "static webserver" e.g. for serving assets.
+
+`hfiler` must:
+- match an HTTP request URL to a file-system based asset
+- load this asset from the filesystem into Redis, with flexible expiry
+- enable programmable expiry via a configurable Node module path
+- optionally gzip the content in Redis
+-
 
 #### rquery
 
-I'm imagine a `rquery` service will accept an array of Redis commands, and return the requested data.
+I'm imagining a simple `rquery` service will accept an array of Redis commands, and return the requested data.
 
-```javascript
-{
-   paramaters: {
-      articleId: 12345
-   },
-   commands: [
-      {
-         command: "hget article:$articleId section"
-         save: "section"
-      },
-      {
-         command: "hget section:$section label"
-         save: "label"
-      }
-   ]
-}
+```shell
+redis-cli get rquery:clihelp
+Welcome to @rquery from service 1
+For request message in YAML format, use #rquery:req:yaml  
 ```
+where we can interact with the service via the Redis CLI e.g. for demo purposes.
+
+
+#### News/blog article
+
+For example, a news publishing application might query for an article title and section:
+```shell
+redis-cli lpush rquery:req:yaml "
+  meta:
+    id: 12345
+  paramaters:
+    articleId: 7654321
+  commands:
+  - command: hget article:$articleId section
+    save: sectionId
+  - name: label
+    command: hget section:$section label
+"
+```
+
 where this might return the following results:
 ```
+redis-cli brpop rquery:res
+```
+```json
 {
-   values: {
-      section: 'news',
-      label: 'News'
+   "meta": {
+     "id": 12345
+  },
+   "commands": {
+      "label": "News"
+   },
+   "saved": {
+      "sectionId": "news"
    }
 }   
 ```
+where this response is `popped` from a Redis "response" queue. We note that the `meta.id` matches our request.
+
+In practice, we must `brpoplpush :req :pending` e.g. so that crashes can be detected via `:pending` and perhaps even recovered e.g. in the event that some new version of the service instance is crashing after popping the message. In this scenario, we must detect the faulty instance, deregister it and schedule its shutdown e.g. `del` its service key.
+
 
 ### Further reading
 

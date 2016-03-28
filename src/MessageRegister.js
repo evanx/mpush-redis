@@ -20,16 +20,16 @@ export default class MessageRegister {
       const id = await this.redisClient.incrAsync(this.redisKey('id'));
       logger.debug('registerMessage', id);
       let xid;
-      let xidMeta = {id};
+      let xidHashes = {id};
       if (/^[0-9]+$/.test(message)) {
          xid = message;
-         xidMeta.type = 'number';
+         xidHashes.type = 'number';
       } else if (message.meta && message.meta.id) {
          xid = message.meta.id;
-         xidMeta.type = 'meta';
+         xidHashes.type = 'meta';
       } else {
          xid = this.service.sha1(message);
-         xidMeta.type = 'sha1';
+         xidHashes.type = 'sha1';
       }
       logger.debug('registerMessage', id, xid);
       const [[timestampString], length, exists] = await this.redisClient.multiExecAsync(multi => {
@@ -49,13 +49,13 @@ export default class MessageRegister {
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             const deadline = Invariants.addTimestampInterval(timestamp, this.props.messageTimeout, 'deadline');
             const hashes = {timestamp, xid, deadline, service: this.service.id};
-            logger.debug('register', id, hashes, xidMeta);
+            logger.debug('register', id, hashes, xidHashes);
             multi.lpush(this.redisKey('ids'), id);
             multi.hmset(this.redisKey(id), hashes);
             multi.expire(this.redisKey(id), this.props.messageExpire);
             if (xid) {
                const key = this.redisKey('xid', xid);
-               multi.hmset(key, xidMeta);
+               multi.hmset(key, xidHashes);
                multi.expire(key, this.props.messageExpire);
             }
          });

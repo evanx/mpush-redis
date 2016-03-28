@@ -32,7 +32,18 @@ redis-cli hkeys demo:mpush:service:9
 3) "started"
 4) "renewed"
 ```
-The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if a service fails to renew its hashes, i.e. its heartbeat fails, then it must exit. Incidently, services should perform a startup assert that its key does not exist. The service should routinely ensure the existence of its key, e.g. before its `brpoplpush` operation, and otherwise exit. As a further sanity check, the renewal heartbeat validates that the `renewed` timestamp is unchanged from its previous setting.
+The `renewed` field above, is the heartbeat timestamp. Suffice it to say that if a service fails to renew its hashes, i.e. its heartbeat fails, then it must exit.
+
+
+#### Namespace isolation
+
+Naturally Redis data is dangerously "global" and mutable. We must mitigate this risk by distrusting the data. For example, the renewal processor validates that the `renewed` timestamp is unchanged from its previous setting.
+
+Also, upon startup, a service must assert that its key does not exist.
+
+Such checks should detect some misconfigurations and/or terrible bugs that expose the above-mentioned fragility, especially in deployment scenarios where many services use the same Redis instance.
+
+<b>Ideally dedicated Redis instances should be used for different service namespaces.</b>
 
 
 #### List of service ids
@@ -90,6 +101,9 @@ Therefore services can be shutdown via Redis by deleting their key:
 redis-cli del demo:mpush:service:9
 (integer) 0
 ```
+
+In practice, we `brpoplpush :req :pending` e.g. so that crashes can be detected via `:pending` and perhaps even recovered e.g. in the event that some new version of the service instance is crashing after popping the message. In this scenario, we must detect the faulty instance, deregister it and schedule its shutdown e.g. `del` its service key.
+
 
 #### Startup
 
