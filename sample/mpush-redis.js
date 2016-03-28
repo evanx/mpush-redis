@@ -6,7 +6,7 @@ module.exports = {
    serviceExpire: 60,
    serviceRenew: 10,
    serviceCapacity: 10,
-   messageExpire: 30,
+   messageExpire: 60,
    messageTimeout: 10,
    messageCapacity: 1000,
    popTimeout: 10,
@@ -15,4 +15,3 @@ module.exports = {
    out: ['demo:mpush:out0', 'demo:mpush:out1'],
    done: 'demo:mpush:done',
 };
-

@@ -32,7 +32,7 @@ export default class MessageDone {
    }
 
    async popDone() {
-      const [id, llen, [timestampString]] = await this.redisClient.multiExecAsync(multi => {
+      const [[listName, id], llen, [timestampString]] = await this.redisClient.multiExecAsync(multi => {
          multi.brpop(this.props.done, this.props.popTimeout);
          multi.llen(this.props.done);
          multi.time();
@@ -42,29 +42,29 @@ export default class MessageDone {
          await this.service.delay(500);
       } else {
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
-         this.logger.debug('rpop', this.props.done, timestamp, id, llen, meta);
+         this.logger.debug('rpop', this.props.done, id, llen, timestamp, meta);
          if (!meta) {
             this.components.metrics.count('done:expired', id);
             this.components.metrics.histo('done', 1, id);
             return this.popDone();
          }
          const interval = this.props.messageTimeout;
-         let duration;
+         let timeout;
          let normalizedValue;
          if (!meta.deadline) {
             logger.warn('deadline', Object.keys(meta));
          } else {
-            duration = timestamp - meta.timestamp;
-            normalizedValue = Math.min(1, duration/interval);
-            this.components.metrics.sum('done', duration, id);
+            timeout = timestamp - meta.timestamp;
+            normalizedValue = Math.min(1, timeout/this.props.messageTimeout);
+            this.components.metrics.sum('done', timeout, id);
             this.components.metrics.histo('done', normalizedValue, id);
-            this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
+            this.logger.info('removed', {id, meta, timeout}, multiResults.join(' '));
          }
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(this.redisKey('ids'), -1, id);
          });
-         this.logger.info('removed', {id, meta, duration, normalizedValue}, multiResults.join(' '));
+         this.logger.info('removed', {id, meta, timeout, normalizedValue}, multiResults.join(' '));
       }
    }
 
