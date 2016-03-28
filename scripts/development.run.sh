@@ -1,3 +1,3 @@
 
- loggerLevel=debug propsFile=~/config/mpush-redis.js npm start
+ loggerLevel=debug propsFile=~/mpush-redis/sample/mpush-redis.js npm start
 

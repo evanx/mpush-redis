@@ -422,12 +422,15 @@ demo:mpush:metrics:timeout
 6) "27"
 7) "histo100"
 8) "63"
-
-average=$[ 657/63 ]
-10
 ```
+
 where since all timeout durations equal or exceed the `messageTimout` (10 seconds) we only have `histo100` counts (100%).
 
+As mentioned before, the average is calculated as `sum/count`
+```
+ave=$[ 657/63 ]
+10
+```
 
 ### Related projects
 

@@ -63,7 +63,7 @@ export default class MessagePending {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
          });
-         this.logger.debug('removed', {id, meta, deadline, timestamp, timeout}, multiResults.join(' '));
+         this.logger.debug('removed', {id, meta, messageTimeout, deadline, timestamp, timeout}, timeout/this.props.messageTimeout, multiResults.join(' '));
          return;
       }
    }
