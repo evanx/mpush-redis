@@ -87,7 +87,7 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 - load this asset from the filesystem into Redis, with flexible expiry
 - enable programmable expiry via a configurable Node module path
 - optionally gzip the content in Redis
--
+
 
 #### rquery
 
