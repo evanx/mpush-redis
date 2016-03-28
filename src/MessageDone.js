@@ -8,7 +8,7 @@ export default class MessageDone {
    async start(state) {
       Object.assign(this, state);
       this.redisNamespace = Asserts.assert(this.props.serviceNamespace, 'redisNamespace');
-      this.redisClient = service.createRedisClient(this.props.redis);
+      this.redisClient = service.createRedisClient(this.props.serviceRedis);
       this.runPromise = this.run();
    }
 
@@ -41,8 +41,8 @@ export default class MessageDone {
       if (!id) {
          await this.service.delay(500);
       } else {
-         this.logger.debug('rpop', this.props.done, timestamp, id, llen);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
+         this.logger.debug('rpop', this.props.done, timestamp, id, llen, meta);
          if (!meta) {
             this.components.metrics.count('done:expired', id);
             this.components.metrics.histo('done', 1, id);

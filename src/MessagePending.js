@@ -47,6 +47,7 @@ export default class MessagePending {
       const timestamp = parseInt(timestampString);
       const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
       if (!meta) {
+         logger.debug('expired', this.redisKey(id));
          this.components.metrics.count('message:expired', id);
          await this.redisClient.lremAsync(listKey, -1, id);
          return;
@@ -56,15 +57,16 @@ export default class MessagePending {
       } else {
          Invariants.validateMinExclusive(this.props.messageTimeout, 0, 'messageTimeout');
          const messageTimestamp = Invariants.validateTimestamp(meta.timestamp, 'timestamp')
+         const messageTimeout = this.props.messageTimeout;
          const timeout = timestamp - messageTimestamp;
+         const normalizedValue = Math.min(1, timeout/messageTimeout);
          await this.components.metrics.sum('timeout', timeout, id);
-         await this.components.metrics.histo('timeout', Math.min(1, timeout/this.props.messageTimeout), id);
+         await this.components.metrics.histo('timeout', normalizedValue, id);
          const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
          });
-         const messageTimeout = this.props.messageTimeout;
-         this.logger.debug('removed', {id, meta, messageTimeout, deadline, timestamp, timeout, del, lrem});
+         this.logger.debug('removed', {id, meta, timestamp, messageTimeout, deadline, timestamp, timeout, normalizedValue, del, lrem});
          return;
       }
    }
