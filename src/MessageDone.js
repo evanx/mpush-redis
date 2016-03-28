@@ -44,7 +44,8 @@ export default class MessageDone {
          this.logger.debug('rpop', this.props.done, timestamp, id, llen);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
          if (!meta) {
-            this.components.metrics.count('done:expired', duration, id);
+            this.components.metrics.count('done:expired', id);
+            this.components.metrics.histo('done', 1, id);
             return this.popDone();
          }
          const interval = this.props.messageTimestamp;
