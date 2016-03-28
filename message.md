@@ -1,13 +1,9 @@
 
-### Message tracking for timeouts and retries
+### Message tracking for timeouts and retry
 
 An optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for message lifecycle management, as well as service lifecycle management and metrics.
 
 This can be complemented with an optional `serviceRedis` URL, for the related keys. Otherwise they are stored in the default Redis database, i.e. the same instance as the target `:in` and `:out` queues.
-
-We provide optional components to monitor:
-- timeouts, for metrics and retries
-- expiry, for garbage-collection
 
 A similar mechanism as that described for tracking services, is used for tracking messages, as follows:
 - `incr :message:id` to obtain a sequential unique message `$id`
@@ -108,6 +104,11 @@ The "timeout monitor" performs the following:
 - `lrem :message:ids -1 $id` to delist expired message ids
 
 The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:message:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
+
+#### Retry
+
+IN PLANNING
+
 
 ### Further reading
 

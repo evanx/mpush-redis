@@ -13,6 +13,11 @@ Clearly if a subscriber is offline, its incoming messages are "persistent" since
 
 Incidently, a "subscriber" could be comprised of redundant microservices consuming the same subscription list. Such a system offers resilience and scalability. Clearly the service must be "stateless" in this case, e.g. where its state is externalized (and shared) using Redis.
 
+### Status
+
+ALPHA
+
+This service will be tested in production in the coming weeks, with a view to a 1.0-RC 
 
 ### Implementation
 
