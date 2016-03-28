@@ -399,8 +399,7 @@ We plan to include histogram data e.g. counting the response times falling betwe
 - `histo10` - `[0.1, 0.2]`
 - similarly `histo20` through `histo80`
 - `histo90` - `[0.9, 1.0]`
-- `histo100` - `[1, 1]`
-- as well as the number of timeouts.
+- `histo100` - `[1, 1]` i.e. the number of maximum values
 
 Here is a code sample:
 ```javascript
