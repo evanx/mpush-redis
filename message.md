@@ -98,9 +98,11 @@ The worker microservice which actually handles the message, pushes its id into a
 Clearly `messageExpire` must be longer than `messageTimeout` to give our monitor sufficient time to detect timeouts.
 
 The "timeout monitor" performs the following:
-- `lrange :message:done 0 -1` to check processed messages and update `:metrics:done {count, sum, max}` (hashes)
+- `lrange :message:done 0 -1` to check processed messages
 - `hget :message:$id timestamp` to get the original timestamp of a message
-- `hset :metrics:done max $max` to update the peak response time
+- `hincrby :metrics:done count 1`
+- `hincrby :metrics:done sum $timeout`
+- `hget:metrics:done max $max` and perhaps `hset`
 - `lrem :message:ids -1 $id` to delist expired message ids
 
 The `lrem` command is performed by the monitor when it detects expired ids, i.e. where the `:message:$id` hashes key does not exist e.g. because it was expired by Redis after the configured `$messageExpire` period.
