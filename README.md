@@ -395,7 +395,7 @@ redis-cli hgetall demo:mpush:metrics:timeout
 The average time can be calculated by dividing `sum/count.`
 
 We plan to include histogram data e.g. counting the response times falling between 10% intervals of the timeout:
-- `histo0` - `[0.0, 0.1)` i.e. inclusive of `0` but exclusive of `0.1`
+- `histo0` - `[0.0, 0.1)` inclusive of `0` but exclusive of `0.1`
 - `histo10` - `[0.1, 0.2)`
 - etc
 - `histo90` - `[0.9, 1)`
@@ -412,25 +412,16 @@ where we count timeout durations exceeding the `messageTimeout` as having a `nor
 
 Let's check the timeout metrics:
 ```
-redis-cli hget demo:mpush:metrics:timeout
-demo:mpush:metrics:done
- 1) "histo100"
- 2) "108"
- 3) "histo10"
- 4) "2"
- 5) "count"
- 6) "24"
- 7) "sum"
- 8) "149"
- 9) "max"
-10) "9"
-11) "histo90"
-12) "2"
-13) "histo80"
-14) "12"
-15) "histo70"
+redis-cli hgetall demo:mpush:metrics:timeout
+1) "count"
+2) "5"
+3) "sum"
+4) "50"
+5) "max"
+6) "10"
+7) "histo100"
+8) "5"
 ```
-
 where since all timeout durations equal or exceed the `messageTimout` (10 seconds) we only have `histo100` counts (100%).
 
 As mentioned before, the average is calculated as `sum/count`
@@ -441,22 +432,20 @@ ave=$[ 657/63 ]
 
 In the case of response times (according to the `:message:done` notification queue), we see other histogram intervals e.g. `histo10` counts the number of response times between 10% to 20% of the `messageTimeout`
 ```
-demo:mpush:metrics:done
- 1) "histo100"
- 2) "108"
- 3) "histo10"
- 4) "2"
- 5) "count"
- 6) "5"
- 7) "sum"
- 8) "28"
- 9) "max"
-10) "9"
-11) "histo90"
+redis-cli hgetall demo:mpush:metrics:done
+ 1) "histo80"
+ 2) "2"
+ 3) "count"
+ 4) "6"
+ 5) "sum"
+ 6) "42"
+ 7) "max"
+ 8) "8"
+ 9) "histo70"
+10) "2"
+11) "histo60"
 12) "2"
-13) "histo80"
-14) "1"
-```
+````
 
 
 ### Related projects
