@@ -48,17 +48,23 @@ export default class MessageDone {
             this.components.metrics.histo('done', 1, id);
             return this.popDone();
          }
-         const interval = this.props.messageTimestamp;
-         if (meta.deadline) {
+         const interval = this.props.messageTimeout;
+         let duration;
+         let normalizedValue;
+         if (!meta.deadline) {
+            logger.warn('deadline', Object.keys(meta));
+         } else {
             duration = timestamp - meta.timestamp;
+            normalizedValue = Math.min(1, duration/interval);
             this.components.metrics.sum('done', duration, id);
-            this.components.metrics.histo('done', Math.min(1, duration/interval), id);
+            this.components.metrics.histo('done', normalizedValue, id);
+            this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
          }
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(this.redisKey('ids'), -1, id);
          });
-         this.logger.info('removed', {id, meta, duration}, multiResults.join(' '));
+         this.logger.info('removed', {id, meta, duration, normalizedValue}, multiResults.join(' '));
       }
    }
 

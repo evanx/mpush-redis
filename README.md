@@ -413,16 +413,21 @@ where we count timeout durations exceeding the `messageTimeout` as having a `nor
 Let's check the timeout metrics:
 ```
 redis-cli hget demo:mpush:metrics:timeout
+demo:mpush:metrics:timeout
 1) "count"
-2) "8"
+2) "63"
 3) "sum"
-4) "97"
+4) "657"
 5) "max"
 6) "27"
 7) "histo100"
-8) "8"
+8) "63"
+
+average=$[ 657/63 ]
+10
 ```
-where since all timeout durations exceed the `messageTimout,` we only have `histo100` counts (100%).
+where since all timeout durations equal or exceed the `messageTimout` (10 seconds) we only have `histo100` counts (100%).
+
 
 ### Related projects
 

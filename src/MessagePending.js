@@ -47,7 +47,7 @@ export default class MessagePending {
       const timestamp = parseInt(timestampString);
       const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
       if (!meta) {
-         this.components.metrics.count('message:expire', id);
+         this.components.metrics.count('message:expired', id);
          await this.redisClient.lremAsync(listKey, -1, id);
          return;
       }
