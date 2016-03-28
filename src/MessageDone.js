@@ -32,17 +32,18 @@ export default class MessageDone {
    }
 
    async popDone() {
-      const [[listName, id], llen, [timestampString]] = await this.redisClient.multiExecAsync(multi => {
+      const [pop, llen, [timestampString]] = await this.redisClient.multiExecAsync(multi => {
          multi.brpop(this.props.done, this.props.popTimeout);
          multi.llen(this.props.done);
          multi.time();
       });
       const timestamp = Invariants.parseInt(timestampString);
-      if (!id) {
+      if (!pop) {
          await this.service.delay(500);
       } else {
+         const id = pop[1];
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
-         this.logger.debug('rpop', this.props.done, id, llen, timestamp, meta);
+         this.logger.debug('brpop', this.props.done, id, llen, timestamp, meta);
          if (!meta) {
             this.components.metrics.count('done:expired', id);
             this.components.metrics.histo('done', 1, id);
@@ -58,13 +59,13 @@ export default class MessageDone {
             normalizedValue = Math.min(1, timeout/this.props.messageTimeout);
             this.components.metrics.sum('done', timeout, id);
             this.components.metrics.histo('done', normalizedValue, id);
-            this.logger.info('removed', {id, meta, timeout}, multiResults.join(' '));
+            this.logger.info('removed', {id, meta, timeout, normalizedValue});
          }
-         const multiResults = await this.redisClient.multiExecAsync(multi => {
+         const [del, lrem] = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(this.redisKey('ids'), -1, id);
          });
-         this.logger.info('removed', {id, meta, timeout, normalizedValue}, multiResults.join(' '));
+         this.logger.info('removed', {id, meta, timeout, normalizedValue}, {del, lrem});
       }
    }
 
