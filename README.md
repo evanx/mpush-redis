@@ -410,6 +410,20 @@ await this.components.metrics.histo('timeout', Math.min(1, timeout/this.props.me
 ```
 where we count timeout durations exceeding the `messageTimeout` as having a `normalizedValue` of `1.`
 
+Let's check the timeout metrics:
+```
+redis-cli hget demo:mpush:metrics:timeout
+1) "count"
+2) "8"
+3) "sum"
+4) "97"
+5) "max"
+6) "27"
+7) "histo100"
+8) "8"
+```
+where since all timeout durations exceed the `messageTimout,` we only have `histo100` counts (100%).
+
 ### Related projects
 
 

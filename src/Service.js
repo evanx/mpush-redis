@@ -60,6 +60,7 @@ export default class Service {
       this.components = {};
       logger.info('requiredComponents', this.requiredComponents.length);
       for (const component of this.requiredComponents) {
+         await this.delay(100);
          await this.startComponent(component);
       }
       logger.info('started components', Object.keys(this.components));

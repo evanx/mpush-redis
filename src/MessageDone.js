@@ -44,12 +44,14 @@ export default class MessageDone {
          this.logger.debug('rpop', this.props.done, timestamp, id, llen);
          const meta = await this.redisClient.hgetallAsync(this.redisKey(id));
          if (!meta) {
-            this.service.metrics.count('done:expired', duration, id);
+            this.components.metrics.count('done:expired', duration, id);
             return this.popDone();
          }
+         const interval = this.props.messageTimestamp;
          if (meta.deadline) {
             duration = timestamp - meta.timestamp;
-            this.service.metrics.sum('done', duration, id);
+            this.components.metrics.sum('done', duration, id);
+            this.components.metrics.histo('done', Math.min(1, duration/interval), id);
          }
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
