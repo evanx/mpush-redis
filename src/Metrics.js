@@ -48,17 +48,14 @@ export default class Metrics {
       }
    }
 
-   async histo(name, value, nominalValue, ...args) {
+   async histo(name, normalizedValue, ...args) {
       try {
+         Invariants.validateRangeInclusive(normalizedValue, [0, 1], 'normalizedValue');
+         const intervalIndex = Math.floor(normalizedValue*10);
          const hashesKey = this.redisKey(name);
-         const max = await this.redisClient.hgetAsync(hashesKey, 'max');
-         this.logger.debug('histo', name, value, args);
+         this.logger.debug('histo', name, normalizedValue, intervalIndex);
          this.redisClient.multiExecAsync(multi => {
-            multi.hincrby(hashesKey, 'count', 1);
-            multi.hincrby(hashesKey, 'sum', value);
-            if (!max || value > max) {
-               multi.hset(hashesKey, 'max', value);
-            }
+            multi.hincrby(hashesKey, 'histogram' + intervalIndex, 1);
          });
       } catch (err) {
          this.service.error(this, err);

@@ -61,6 +61,13 @@ var that = {
       }
       return timestamp;
    },
+   ensureRangeInclusive(value, range, name) {
+      if (value >= range[0] && value <= range[1]) {
+         return value;
+      } else {
+         throw new Error(`${name} (${value}) range ${range}`);
+      }
+   },
    parseTimestamp(value, name) {
       var timestamp = that.parseInt(value, name);
       if (timestamp > 0 && timestamp < that.minTimestamp) {
@@ -94,7 +101,16 @@ var that = {
          throw new Error(`${name} (${value}) min ${min}`);
       }
       return value;
+   },
+   validateIntegerMin(value, min, name) {
+      that.validate(value, name);
+      if (value >= min) {
+      } else {
+         throw new Error(`${name} (${value}) min ${min}`);
+      }
+      return value;
    }
+
 };
 
 module.exports = that;

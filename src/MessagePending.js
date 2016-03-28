@@ -51,12 +51,14 @@ export default class MessagePending {
          await this.redisClient.lremAsync(listKey, -1, id);
          return;
       }
-      const deadline = Invariants.ensureTimestamp(meta.deadline, 'deadline');
+      const deadline = Invariants.parseTimestamp(meta.deadline, 'deadline');
       if (deadline > timestamp) {
       } else {
-         const messageTimestamp = Invariants.ensureTimestamp(meta.timestamp, 'timestamp')
+         Invariants.validateMinExclusive(this.props.messageTimeout, 0, 'messageTimeout');
+         const messageTimestamp = Invariants.validateTimestamp(meta.timestamp, 'timestamp')
          const timeout = timestamp - messageTimestamp;
-         this.components.metrics.sum('timeout', timeout, id);
+         await this.components.metrics.sum('timeout', timeout, id);
+         await this.components.metrics.histo('timeout', Math.min(1, timeout/this.props.messageTimeout), id);
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             multi.del(this.redisKey(id));
             multi.lrem(listKey, -1, id);
