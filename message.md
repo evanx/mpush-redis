@@ -39,14 +39,18 @@ redis-cli lrange demo:mpush:message:ids 0 -1
 And the `:message:$id` hashes:
 ```
 redis-cli hgetall demo:mpush:message:3
-1) "deadline"
-2) "1459103237"
-3) "timestamp"
-4) "1459103227"
-5) "xid"
-6) "12345"
+1) "timestamp"
+2) "1459166173"
+3) "xid"
+4) "123456"
+5) "deadline"
+6) "1459166183"
+7) "service"
+8) "1"
 ```
+
 We record the "deadline" time calculated as `timestamp + timeout.` Suffice it to say that replica instances might have different timeouts, e.g. during rolling reconfigurations.
+
 
 #### xid
 
@@ -109,9 +113,11 @@ The `lrem` command is performed by the monitor when it detects expired ids, i.e.
 
 ### Further reading
 
-Optional service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
+Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
 
-Optional message lifecycle management for timeouts: https://github.com/evanx/mpush-redis/blob/master/message.md
+Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
+
+Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
 
 Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
 

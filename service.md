@@ -130,9 +130,11 @@ Further efforts will be taken, as follows:
 
 ### Further reading
 
-Optional service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
+Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
 
-Optional message lifecycle management for timeouts: https://github.com/evanx/mpush-redis/blob/master/message.md
+Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
+
+Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
 
 Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
 

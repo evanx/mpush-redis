@@ -7,7 +7,7 @@ This is a simple Redis-based message-parallelizing microservice. It supports a p
 
 It is built for NodeJS, using the Babel transpiler to support async/await etc.
 
-In practice, some "publisher" pushes a message onto a Redis list. This service pops those messages, and pushes each message onto multiple lists, one for each subscriber. Each subscriber pops messages from their own dedicated Redis list.
+In practice, some "publisher" pushes a message onto a Redis list. <b>This service pops those messages, and pushes each message onto multiple lists, one for each subscriber.</b> Each subscriber pops messages from their own dedicated Redis list.
 
 Clearly if a subscriber is offline, its incoming messages are "persistent" since they accumulate in Redis, and are available when the subscriber comes online again.
 
@@ -151,9 +151,11 @@ Note that the `service*` and `message*` props are only required if the `serviceN
 
 ### Further reading
 
-Optional service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
+Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
 
-Optional message lifecycle management for timeouts: https://github.com/evanx/mpush-redis/blob/master/message.md
+Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
+
+Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
 
 Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
 

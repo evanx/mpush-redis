@@ -1,5 +1,4 @@
 
-
 ## Metrics
 
 An optional `serviceNamespace` configuration property e.g. `"demo:mpush"` is used for metrics.
@@ -74,3 +73,18 @@ redis-cli hgetall demo:mpush:metrics:done
 11) "histo60"
 12) "2"
 ````
+
+### Further reading
+
+Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
+
+Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
+
+Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
+
+Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
+
+
+#### Redex
+
+While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.

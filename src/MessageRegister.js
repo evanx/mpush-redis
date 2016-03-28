@@ -48,7 +48,7 @@ export default class MessageRegister {
          assert(this.props.messageTimeout > 0, 'messageTimeout');
          const multiResults = await this.redisClient.multiExecAsync(multi => {
             const deadline = Invariants.addTimestampInterval(timestamp, this.props.messageTimeout, 'deadline');
-            const hashes = {timestamp, xid, deadline};
+            const hashes = {timestamp, xid, deadline, service: this.service.id};
             logger.debug('register', id, hashes, xidMeta);
             multi.lpush(this.redisKey('ids'), id);
             multi.hmset(this.redisKey(id), hashes);
