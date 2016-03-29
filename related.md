@@ -19,14 +19,26 @@ The `vpush` microservice must:
 We will implement another microservice, namely `lpush,` for the case where input and output queues are on the same Redis instance. This implementation will use `multi.`
 
 
-### Multiple repos vs a unified toolkit
+### Further plans
+
+#### Multiple repos vs a unified toolkit
 
 It might make more sense to combine the various services e.g. `mpush` vs `lpush` et al, into a toolkit, i.e. in one repo.
 
-However, the idea of "immutable microservices" appeals to me. We'll see how it goes.
+However, the idea of "immutable microservices" appeals to me.
+
+This effort seems to have become an exploratory re-implementation of my Redex framework. However it was really prompted by a production need for `mpush,` and a belief in the practicality of independently-deployable microservices.
+
+Ideally speaking:
+- Microservices should quickly become immutable.
+- Generally-useful modules should be in their own repo.
+
+This work will prompt a major refactoring of Redex, say for version 0.2.
+
+Possibly some of the services will use Redex 0.2, as a git submodule.
 
 
-### Further plans
+#### Mpush "suite"
 
 The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
 
