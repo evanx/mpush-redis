@@ -79,7 +79,7 @@ My "holy grail" goal would be demonstrating a resilient auto-scaling distributed
 
 For example, setting the number of replicas for a service in Redis, should enable the activation of standby instances, the automatic provisioning of additional instances, and/or the shutdown of excess instances. The performance and health of services (and hosts) will be monitored via metrics published via Redis, e.g. to rollback faulty updates.
 
-I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a insane learning experience.
+I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a fun learning experience.
 
 
 #### hgateway
