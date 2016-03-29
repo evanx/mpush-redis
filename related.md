@@ -30,12 +30,10 @@ However, the idea of "immutable microservices" appeals to me.
 This effort seems to have become an exploratory re-implementation of my Redex framework. However it was really prompted by a production need for `mpush,` and a belief in the practicality of independently-deployable microservices.
 
 Ideally speaking:
-- Microservices should quickly become immutable.
+- Generally-useful microservices should be feature-complete.
 - Generally-useful modules should be in their own repo.
 
-This work will prompt a major refactoring of Redex, say for version 0.2.
-
-Possibly some of the services will use Redex 0.2, as a git submodule.
+This work will prompt a major refactoring of Redex, say for version 0.2. Certainly some upcoming services will use Redex 0.2, as a git submodule.
 
 
 #### Mpush "suite"
