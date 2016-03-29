@@ -43,6 +43,8 @@ The over-arching goal is to implement many such microservices for common integra
 - vpush - transport messages to a remote Redis instance
 - mdispatch - tracking messages for response handling, e.g. building a distributed web server
 - mbalance - push a message to a work queue with the lowest queue length
+
+Also, for fun of building a distributed web server:
 - hfiler - file server for serving static assets i.e. a "static webserver"
 - hgateway - import an HTTP request into a Redis queue for subsequent routing and processing
 - hrouter - route an HTTP message by matching its URL (using regex)
@@ -51,7 +53,7 @@ The over-arching goal is to implement many such microservices for common integra
 - rdeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
-Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP, e.g. the `hgateway` service includes an ExpressJS webserver.
+Typically these are microservices that interact "internally" via Redis, and externally via HTTP, e.g. the `hgateway` service includes an ExpressJS webserver.
 
 
 #### Technology choices
