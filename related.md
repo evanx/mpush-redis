@@ -51,16 +51,16 @@ The over-arching goal is to implement many such microservices for common integra
 - rdeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
-Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP, e.g the `hgateway` service includes a "web server" e.g. ExpressJS.
-
-Incidently, similar services are also planned which use NATS for high-performance fire-and-forget messaging, and that may attract my interest away from this project.
+Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP, e.g. the `hgateway` service includes an ExpressJS webserver.
 
 
 #### Technology choices
 
-While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
+Incidently, similar services are also planned which use NATS for high-performance fire-and-forget messaging.
 
-"Universal JavaScript" is of course compelling for web development, and especially now with:
+However, we use Nginx to handle high-performance HTTP caching and switching, and Node/Redis to handle application programming. Microservices that handle say 10k messages per second, should be probably be developed in Go, and be using NATS.
+
+Nevertheless "Universal JavaScript" is of course compelling for web development, and especially now with:
 - ES6 - arrow functions, et al.
 - ES2016 - async/await sugaring of ES6 promises/generators, et al.
 
@@ -69,8 +69,6 @@ I believe that stateless microservices, Redis, Node and ES2016 are complementary
 - Redis is great for shared state and asynchronous messaging, to enable stateless microservices
 - Node is great for small codebases like microservices
 - ES2016 async/await is great for Node
-
-However, NATS messaging service should be considered for high-performance messaging.
 
 
 #### Planned demo
