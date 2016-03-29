@@ -47,7 +47,7 @@ The over-arching goal is to implement many such microservices for common integra
 - hgateway - import an HTTP request into a Redis queue for subsequent routing and processing
 - hrouter - route an HTTP message by matching its URL (using regex)
 - hrender - render a React template
-- rquery - retrieve application data from Redis
+- rquery - retrieve data from Redis
 - rdeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
