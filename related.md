@@ -33,7 +33,8 @@ Ideally speaking:
 - Generally-useful microservices should be feature-complete.
 - Generally-useful modules should be in their own repo.
 
-This work will prompt a major refactoring of Redex, say for version 0.2. Certainly some upcoming services will use Redex 0.2, as a git submodule.
+This work will surely prompt a refactoring of Redex, say for version 0.2, and some services will use Redex 0.2, as a git submodule.
+
 
 #### Mpush "suite"
 
