@@ -35,7 +35,6 @@ Ideally speaking:
 
 This work will prompt a major refactoring of Redex, say for version 0.2. Certainly some upcoming services will use Redex 0.2, as a git submodule.
 
-
 #### Mpush "suite"
 
 The over-arching goal is to implement many such microservices for common integration and messaging patterns, for the purpose of composing stateless Redis-based microservices.
