@@ -46,7 +46,7 @@ where we use `bluebird.promisifyAll` which mixes in async functions e.g. `execAs
 
 The blocking pop operation has a configured `popTimeout.` It is performed in a loop, until the service is "ended."
 
-Note that the service can shutdown gracefully e.g. in the event of a `SIGTERM` signal. However, it must wait for the blocking operation to complete. Therefore `popTimeout` is the lower-bound of the worse-case shutdown duration.
+Note that the service will shutdown gracefully e.g. in the event of a `SIGTERM` signal. However, it must wait for the blocking operation to complete. Therefore `popTimeout` is the lower-bound of the worse-case shutdown duration.
 
 
 ### Installation
