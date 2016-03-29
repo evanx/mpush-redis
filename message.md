@@ -66,7 +66,7 @@ async registerMessage(message) {
       xidHashes.type = 'sha1';
    }
 ```
-where `xid` is the "extracted" intrinsic id of the message as follows:
+where `xid` is the extracted/intrinsic id of the message as follows:
 - if the message itself is a number, then take this as the `xid`
 - otherwise `message.meta.id` if this exists
 - failing the above, the SHA1 hash of the message as the `xid`
@@ -80,7 +80,7 @@ redis-cli hgetall demo:mpush:message:xid:12345
 3) "type"
 4) "number"
 ```
-where the `type` indicates the incoming message itself was a number, i.e. `12345.`
+where the `type` indicates the incoming message was itself a number, i.e. `12345,` and so this is used for the `xid.`
 
 The `:message:xid:$xid` key enables a subscriber worker to lookup the message `id` in order to push it into `:message:done.` Otherwise it will be counted as a timeout i.e. in the `:metrics:timeout` hashes:
 

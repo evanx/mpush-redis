@@ -43,7 +43,10 @@ The over-arching goal is to implement many such microservices for common integra
 
 Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP.
 
-For example, the `hgateway` and `hfiler` services include a "web server" e.g. ExpressJS.
+The `hgateway` service includes a "web server" e.g. ExpressJS.
+
+
+#### Technology choices
 
 While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
 
@@ -54,6 +57,8 @@ I believe that Redis, Node, ES2016, React and stateless microservices are relati
 - microservices are simple to write
 - Node is great for small codebases like microservices
 - ES2016 async/await is great for Node
+
+#### Planned demo
 
 My "holy grail" goal would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and "declarative" service orchestration.
 
@@ -76,9 +81,10 @@ This implements a "web server", i.e. accepts incoming HTTP requests e.g. via Exp
 - respond to the original HTTP request via ExpressJS
 - ensure that the timeout handler will
 
+
 #### hfiler
 
-`hfiler` implements an HTTP service, meaning it processes HTTP messages. However it is not an "HTTP server" in the usual sense i.e. binding to a TCP/IP socket.
+`hfiler` implements an HTTP service, meaning it processes HTTP messages. However it is not necessarily an "HTTP server" in the usual sense i.e. binding to a TCP/IP socket.
 
 Its purpose is to enable a "static webserver" e.g. for serving assets.
 
@@ -137,7 +143,7 @@ redis-cli brpop rquery:res
 ```
 where this response is `popped` from a Redis "response" queue. We note that the `meta.id` matches our request.
 
-In practice, we must `brpoplpush :req :pending` e.g. so that crashes can be detected via `:pending` and perhaps even recovered e.g. in the event that some new version of the service instance is crashing after popping the message. In this scenario, we must detect the faulty instance, deregister it and schedule its shutdown e.g. `del` its service key.
+Note that in practice, rather than `brpop,` we must `brpoplpush :req :pending` e.g. so that the message can be recovered from `:pending` e.g. in the event that some new version of the service instance is crashing after popping the message. Incidently, in this scenario, we must detect the faulty instance, deregister it for and schedule its shutdown e.g. `del` its service key.
 
 
 ### Further reading
@@ -149,6 +155,7 @@ Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-r
 Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
 
 Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
+
 
 #### Redex
 
