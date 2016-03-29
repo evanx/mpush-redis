@@ -107,7 +107,7 @@ For request message in YAML format, use #rquery:req:yaml
 where we can interact with the service via the Redis CLI e.g. for demo purposes.
 
 
-#### News/blog article
+##### News/blog article
 
 For example, a news publishing application might query for an article title and section:
 ```shell
