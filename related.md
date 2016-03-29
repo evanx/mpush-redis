@@ -51,22 +51,27 @@ The over-arching goal is to implement many such microservices for common integra
 - rdeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
-Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP.
+Where all services interact with each other via Redis. Typically these are microservices that interact internally via Redis, and externally via HTTP, e.g the `hgateway` service includes a "web server" e.g. ExpressJS.
 
-The `hgateway` service includes a "web server" e.g. ExpressJS.
+Incidently, similar services are also planned which use NATS for high-performance fire-and-forget messaging, and that may attract my interest away from this project.
 
 
 #### Technology choices
 
 While Node.js might not be as performant as Go or Rust for example, we nevertheless benefit from the underlying performance of Redis.
 
-"Universal JavaScript" is of course compelling for web development. As a web developer, I favour JavaScript, especially now with ES6 (arrow functions et al) and ES2016 (async/await sugaring of ES6 promises/generators).
+"Universal JavaScript" is of course compelling for web development, and especially now with:
+- ES6 - arrow functions, et al.
+- ES2016 - async/await sugaring of ES6 promises/generators, et al.
 
-I believe that Redis, Node, ES2016, React and stateless microservices are relatively simple, pragmatic and productive. Moreover they are complementary technologies:
-- Redis is great for shared state and asynchronous messaging, to enable stateless microservices
+I believe that stateless microservices, Redis, Node and ES2016 are complementary technologies:
 - microservices are simple to write
+- Redis is great for shared state and asynchronous messaging, to enable stateless microservices
 - Node is great for small codebases like microservices
 - ES2016 async/await is great for Node
+
+However, NATS messaging service should be considered for high-performance messaging.
+
 
 #### Planned demo
 
@@ -75,6 +80,7 @@ My "holy grail" goal would be demonstrating a resilient auto-scaling distributed
 For example, setting the number of replicas for a service in Redis, should enable the activation of standby instances, the automatic provisioning of additional instances, and/or the shutdown of excess instances. The performance and health of services (and hosts) will be monitored via metrics published via Redis, e.g. to rollback faulty updates.
 
 I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a insane learning experience.
+
 
 #### hgateway
 
@@ -88,8 +94,8 @@ This implements a "web server", i.e. accepts incoming HTTP requests e.g. via Exp
 - construct an HTTP request message i.e. including the URL, HTTP headers and "body content."
 - push this "immutable" message into a Redis list e.g. `hgateway:req`
 - `brpoplpush` a response message from a Redis list e.g. `hgateway:res`
+- cancel the timeout handler
 - respond to the original HTTP request via ExpressJS
-- ensure that the timeout handler will
 
 
 #### hfiler
