@@ -44,7 +44,7 @@ The over-arching goal is to implement many such microservices for common integra
 - mdispatch - tracking messages for response handling, e.g. building a distributed web server
 - mbalance - push a message to a work queue with the lowest queue length
 
-Also, for fun of building a distributed web server:
+Also, for the fun of building a distributed web server:
 - hfiler - file server for serving static assets i.e. a "static webserver"
 - hgateway - import an HTTP request into a Redis queue for subsequent routing and processing
 - hrouter - route an HTTP message by matching its URL (using regex)
