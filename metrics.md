@@ -22,11 +22,12 @@ redis-cli hgetall demo:mpush:metrics:timeout
 The average time can be calculated by dividing `sum/count.`
 
 We include histogram data e.g. counting the response times falling between 10% intervals of the timeout:
-- `histo0` - `[0.0, 0.1)` inclusive of `0` but exclusive of `0.1`
-- `histo10` - `[0.1, 0.2)`
+- `histo0` - `[0.0, 0.1)` inclusive of `0` but exclusive of `0.1` i.e. less than 10% of the timeout interval
+- `histo10` - `[0.1, 0.2)` between 10% and 20%
 - etc
-- `histo90` - `[0.9, 1)`
-- `histo100` - `[1, 1]` i.e. the number of values greater or equal to the `timeout` interval
+- `histo90` - `[0.9, 1)` for messages less than the timeout, but equal or greater than 90% thereof
+- `histo100` - `[1, infinity)` i.e. the number of values greater or equal to the `timeout` interval
+where the value is normalized to a value in the range `[0, 1]` i.e. between 0 and 1, inclusive.
 
 Here is a code sample:
 ```javascript
@@ -35,7 +36,7 @@ const interval = parseInt(redisTime) - messageTimestamp;
 await this.components.metrics.sum('timeout', interval, id);
 await this.components.metrics.histo('timeout', Math.min(1, interval/this.props.messageTimeout), id);
 ```
-where we count timeout durations exceeding the `messageTimeout` as having a `normalizedValue` of `1.`
+where we count timeout durations exceeding the `messageTimeout` as having the maximum `normalizedValue` of `1.`
 
 Let's check the timeout metrics:
 ```

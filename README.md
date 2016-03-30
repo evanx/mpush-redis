@@ -158,6 +158,8 @@ Note that the `service*` and `message*` props are only required if the `serviceN
 
 ### Further reading
 
+Component model: https://github.com/evanx/component-validator/blob/master/README.md
+
 Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
 
 Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
@@ -167,6 +169,13 @@ Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metr
 Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
 
 
+#### Chronica 
+
+My "monitoring" project has a similar component model: https://github.com/evanx/chronica 
+
+Especially see its `ComponentFactory` documentation: https://github.com/evanx/chronica/blob/master/lib/ComponentFactory.md
+
+
 #### Redex
 
-While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging - see https://github.com/evanx/redex.
+While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging: https://github.com/evanx/redex
