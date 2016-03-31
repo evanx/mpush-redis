@@ -125,7 +125,7 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 
 This service should `git clone` and `npm install` packages according to a Redis-based request.
 
-##### req
+###### req
 
 We `brpoplpush` a request `id` and `hget :req:$id` fields:
 - the `git` URL
@@ -155,7 +155,7 @@ c0pop() {
     hsetnx $ns:res:$id deployDir $deployDir
 ```
 
-##### git clone
+###### git clone
 
 The service must:
 - `git clone` the URL e.g. from Github, into the directory `.ndeploy/demo-ndeploy/$id/master`
@@ -172,7 +172,7 @@ The service must:
 ```
 where we set the `cloned` timestamp.
 
-#### npm install
+###### npm install
 
 ```shell  
   if [ -f package.json ]
@@ -202,7 +202,7 @@ Let's manually check the `package.json` for this deployment:
 }
 ```
 
-##### res
+###### res
 
 We set `:res:$id` hashes for:
  - the `deployDir` of the `git clone` et al
@@ -223,6 +223,9 @@ We can now `lrem :req:pending $id`
   $redis lrem $ns:req:pending -1 $id
 ```
 where we scan from the tail of the list.
+
+
+##### Further reading
 
 See: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
 
