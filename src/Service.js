@@ -1,11 +1,4 @@
 
-/*
-import bluebird from 'bluebird';
-import bunyan from 'bunyan';
-import fs from 'fs';
-import redisLib from 'redis';
-*/
-
 import Demo from '../demo/Demo';
 
 import MessagePush from './MessagePush';
@@ -14,20 +7,6 @@ import MessageDone from './MessageDone';
 import MessageRegister from './MessageRegister';
 import Metrics from './Metrics';
 import ServiceRenew from './ServiceRenew';
-
-global.ServiceError = function() {
-   this.constructor.prototype.__proto__ = Error.prototype;
-   Error.captureStackTrace(this, this.constructor);
-   this.name = this.constructor.name;
-   this.message = JSON.stringify(args);
-}
-
-global.ValidationError = function(...args) {
-   this.constructor.prototype.__proto__ = Error.prototype;
-   Error.captureStackTrace(this, this.constructor);
-   this.name = this.constructor.name;
-   this.message = JSON.stringify(args);
-}
 
 export default class Service {
 
