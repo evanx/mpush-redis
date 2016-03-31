@@ -183,10 +183,23 @@ where we set the `cloned` timestamp.
 ```
 
 ```shell
-$ du -sh ~/.ndeploy/demo-ndeploy/*
-516K	/home/evans/.ndeploy/demo-ndeploy/1
-516K	/home/evans/.ndeploy/demo-ndeploy/2
-516K	/home/evans/.ndeploy/demo-ndeploy/3
+~/mpush-redis$ cat ~/.ndeploy/demo-ndeploy/9/master/package.json
+```
+
+```json
+{
+  "name": "hello-component",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "@evanxsummers",
+  "license": "ISC",
+  "dependencies": {
+  }
+}
 ```
 
 ##### res
