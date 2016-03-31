@@ -157,7 +157,7 @@ c0pop() {
 
 ##### git clone
 
-where the service must:
+The service must:
 - `git clone` the URL e.g. from Github, into the directory `.ndeploy/demo-ndeploy/$id/master`
 - `git checkout $commit` if a commit hash is specified in the `:req:$id` hashes
 
