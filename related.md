@@ -72,7 +72,7 @@ We observe that enterprise and server-side development tends to follow web devel
 - ES6 - e.g. arrow functions with sane `this`
 - ES2016 - async/await sugaring of ES6 promises/generators
 
-The new features of JavaScript, enabled for immediate use on all platforms via Babel, are too numerous to mention, and the annual cadence of its standardisation is exciting.
+The new features of JavaScript are too numerous to mention. Moreover these are enabled for immediate use on all platforms via Babel. The annual cadence of JS/ES standardisation, and the convergence of JavaScript and TypeScript, is rather exciting.
 
 I believe that stateless microservices, Redis, Node and ES2016 are complementary technologies:
 - microservices are simple to write
