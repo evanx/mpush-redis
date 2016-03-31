@@ -182,10 +182,10 @@ where we set the `cloned` timestamp.
   fi
 ```
 
+Let's manually check the `package.json` for this deployment:
 ```shell
 ~/mpush-redis$ cat ~/.ndeploy/demo-ndeploy/9/master/package.json
 ```
-
 ```json
 {
   "name": "hello-component",
