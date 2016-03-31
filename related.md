@@ -186,7 +186,8 @@ export default async function(state, props, logger, metrics, service) {
          logger.info('goodbye');
       }
    };
-}```
+}
+```
 
 See: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
 
