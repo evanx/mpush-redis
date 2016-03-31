@@ -64,11 +64,13 @@ Typically these are microservices that interact "internally" via Redis, and exte
 
 Incidently, similar services are also planned which use NATS for high-performance fire-and-forget messaging.
 
-However, we use Nginx to handle high-performance HTTP caching and switching, and Node/Redis to handle application programming. Microservices that handle say 10k messages per second, should be probably be developed in Go, and be using NATS.
+However, we use Nginx to handle high-performance HTTP caching and switching, and Node/Redis to handle application programming. Microservices that must handle say 10k messages per second, should be probably be developed in Go, and be using NATS.
 
-Nevertheless "Universal JavaScript" is of course compelling for web development, and especially now with:
+Clearly "Universal JavaScript" is compelling for web development, and especially now with:
 - ES6 - arrow functions, et al.
 - ES2016 - async/await sugaring of ES6 promises/generators, et al.
+
+For processes which individually handle a hundred or less requests per second, and are scaled horizontally, I believe Node is a great choice. Node is highly productive, and performant enough for most applications. Also enterprise and server-side development tends to follow web development.
 
 I believe that stateless microservices, Redis, Node and ES2016 are complementary technologies:
 - microservices are simple to write
