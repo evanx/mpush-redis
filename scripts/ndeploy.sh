@@ -105,6 +105,7 @@ c0pop() {
   if [ -n "$id" ]
   then
     set -e
+    $rediscli hsetnx $ns:res:$id service $serviceId | c1grepq 1
     git=`$rediscli hget $ns:req:$id git`
     branch=`c3hgetd master $ns:req:$id branch`
     commit=`$rediscli hget $ns:req:$id commit`

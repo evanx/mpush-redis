@@ -158,7 +158,10 @@ where we `brpoplpush` a request `id` with hashes `:req:$id` namely:
 - optional `branch` otherwise defaulted to `master`
 - optional `commit` otherwise defaulted to `HEAD`
 
-It will `git clone` the repo, `git checkout $commit,` and `npm install` if a `package.json` is present.
+The service must:
+- `git clone` the URL e.g. from Github, into a directory `.ndeploy/demo-ndeploy/$id/master`
+- `git checkout $commit` if a commit hash is specified in the `:req:$id` hashes
+- `npm install` if a `package.json` is present in the deployment directory
 
 It sets response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request), and pushes the request `id` to the `:res` list.
 
