@@ -129,7 +129,7 @@ For example this might be implemented in bash as follows:
 
 ```shell
 c0pop() {
-  $redis expire $ns:service:$serviceId 60 | c1grepq 1
+  $redis1 expire $ns:service:$serviceId 60
   id=`$redis brpoplpush $ns:req $ns:pending 4`
   [ -z "$id" ] && return 1
   git=`$redis hget $ns:req:$id git`
@@ -146,16 +146,19 @@ c0pop() {
     $redis hset $ns:res:$id npminstalled `date +%s`
   );
   actualCommit=`git log | head -1 | cut -d' ' -f2`
-  $redis hsetnx $ns:res:$id actualCommit $actualCommit
-  $redis hsetnx $ns:res:$id dir $repoDir
+  $redis1 hsetnx $ns:res:$id actualCommit $actualCommit
+  $redis1 hsetnx $ns:res:$id dir $repoDir
   $redis sadd $ns:res:ids  
   $redis lrem $ns:req:pending -1 $id
   $redis lpush $ns:res $id
 }
 ```
-where we `brpoplpush` a request with a `git` URL, and option `branch` and `commit.`
+where we `brpoplpush` a request `id` with hashes `:req:$id` namely:
+- the `git` URL
+- optional `branch` otherwise defaulted to `master`
+- optional `commit` otherwise defaulted to `HEAD`
 
-It will `git clone` the repo, `git checkout $commit` and `npm install.`
+It will `git clone` the repo, `git checkout $commit,` and `npm install` if a `package.json` is present.
 
 It sets response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request), and pushes the request `id` to the `:res` list.
 
@@ -167,8 +170,6 @@ redis-cli hgetall demo:ndeploy:res:10
 4) "1459461669"
 5) "actualCommit"
 6) "c6a9326f46a92d1f7edc4d2a426c583ec8f168ad"
-7) "dir"
-8) "~/.ndeploy/demo-ndeploy/10"
 ```
 
 ```shell

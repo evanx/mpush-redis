@@ -22,7 +22,7 @@ redise() {
   expect=$1
   shift
   rcmd="$@"
-  if echo "$rcmd" | grep -qv " $ns:" 
+  if echo "$rcmd" | grep -qv " $ns:"
   then
     >&2 echo "WARN $rcmd"
     return 1
@@ -90,7 +90,7 @@ pendingId=''
 c0exit() {
   if [ -n "$pendingId" ]
   then
-    v1popError $pendingId 
+    v1popError $pendingId
   fi
 
 }
@@ -102,25 +102,25 @@ c0pop() {
   rcmd="brpoplpush $ns:req $ns:pending 2"
   pendingId=`$rediscli $rcmd`
   id=$pendingId
-  if [ -n "$id" ] 
+  if [ -n "$id" ]
   then
     set -e
-    git=`$rediscli hget $ns:req:$id git` 
-    branch=`c3hgetd master $ns:req:$id branch` 
-    commit=`$rediscli hget $ns:req:$id commit` 
-    echo "$git" | grep '^http\|git@' 
+    git=`$rediscli hget $ns:req:$id git`
+    branch=`c3hgetd master $ns:req:$id branch`
+    commit=`$rediscli hget $ns:req:$id commit`
+    echo "$git" | grep '^http\|git@'
     repoDir="$serviceDir/$id"
     echo "INFO repoDir $repoDir"
-    mkdir -p $repoDir && cd $repoDir 
-    git clone $git -b $branch $branch 
-    cd $branch || c3abort 3 branch $branch 
-    if [ -n "$commit" ] 
+    mkdir -p $repoDir && cd $repoDir
+    git clone $git -b $branch $branch
+    cd $branch || c3abort 3 branch $branch
+    if [ -n "$commit" ]
     then
       echo "INFO git checkout $commit -- $git $branch"
       git checkout $commit
     fi
     $rediscli hset $ns:res:$id cloned `date +%s`
-    if [ -f package.json ] 
+    if [ -f package.json ]
     then
       cat package.json
       npm --silent install
@@ -129,7 +129,7 @@ c0pop() {
     actualCommit=`git log | head -1 | cut -d' ' -f2`
     echo "INFO actualCommit $actualCommit"
     $rediscli hsetnx $ns:res:$id actualCommit $actualCommit | c1grepq 1
-    $rediscli hsetnx $ns:res:$id dir $repoDir
+    $rediscli hsetnx $ns:res:$id repoDir $repoDir
     echo; echo hgetall $ns:res:$id
     $rediscli hgetall $ns:res:$id
     pendingId=''
@@ -158,4 +158,3 @@ c0test() {
 }
 
 c0test
-
