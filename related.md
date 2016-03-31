@@ -74,14 +74,14 @@ I believe that stateless microservices, Redis, Node and ES2016 are complementary
 - microservices are simple to write
 - Redis is great for shared state and asynchronous messaging, to enable stateless microservices
 - Node is great for small codebases like microservices
-- ES2016 async/await is great for Node
+- ES2016 async/await is great for Node i.e. to avoid nested callbacks and repetitive error handling
 
 
 #### Planned demo
 
 My "holy grail" goal would be demonstrating a resilient auto-scaling distributed webserver. I believe that this can be implemented relatively easily by leveraging a Redis Cluster for persistent message storage, shared memory/state for "stateless" microservices, metrics/monitoring, and "declarative" service orchestration.
 
-For example, setting the number of replicas for a service in Redis, should enable the activation of standby instances, the automatic provisioning of additional instances, and/or the shutdown of excess instances. The performance and health of services (and hosts) will be monitored via metrics published via Redis, e.g. to rollback faulty updates.
+For example, setting the number of replicas for a service in Redis, should enable the activation of standby instances, the automatic provisioning of additional instances, and/or the deactivation of excess instances. The performance and health of services (and hosts) will be monitored via metrics published via Redis, e.g. to rollback faulty updates.
 
 I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a fun learning experience.
 
@@ -178,7 +178,7 @@ Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metr
 Component model: https://github.com/evanx/component-validator/blob/master/README.md
 
 
-#### Chronica 
+#### Chronica
 
 My "monitoring" project has similar component model: https://github.com/evanx/chronica
 
