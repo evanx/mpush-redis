@@ -4,16 +4,17 @@ set -u
 rediscli='redis-cli -n 13'
 ns='demo:ndeploy'
 
-c3abort() {
+v3abort() {
   exitCode=$1
-  name=$2
-  value=$3
-  echo "WARN abort: $name $value"
+  shift
+  name=$1
+  value=$2
+  echo "WARN abort: $*"
   exit $exitCode
 }
 
-c1abort() {
-  message="$1"
+v0abort() {
+  message="$*"
   echo "WARN abort: $message"
   exit 1
 }
@@ -56,7 +57,7 @@ c3hgetd() {
   fi
 }
 
-c1grepq() {
+grepq() {
   grep -q "^${1}$"
 }
 
@@ -75,7 +76,7 @@ c1id() {
   name=$1
   >&2 echo $rediscli incr $ns:$name:id
   id=`$rediscli incr $ns:$name:id`
-  redise 0 exists $ns:$name:$id || c1abort "exists $ns:$name:$id"
+  redise 0 exists $ns:$name:$id || v0abort "exists $ns:$name:$id"
   echo $id
 }
 
@@ -106,7 +107,7 @@ c0exit() {
 trap c0exit exit
 
 c0pop() {
-  $rediscli expire $ns:service:$serviceId 60 | c1grepq 1
+  $rediscli expire $ns:service:$serviceId 60 | grepq 1
   rcmd="brpoplpush $ns:req $ns:pending 2"
   pendingId=`$rediscli $rcmd`
   id=$pendingId
@@ -158,7 +159,7 @@ c1popped() {
 c0tpush() {
   sleep .5
   id=`$rediscli incr $ns:req:id`
-  $rediscli exists $ns:req:$id | c1grepq 0
+  $rediscli exists $ns:req:$id | grepq 0
   $rediscli hset $ns:req:$id git https://github.com/evanx/hello-component
   $rediscli lpush $ns:req $id
 }
