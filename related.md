@@ -139,7 +139,7 @@ hgetall demo:ndeploy:req:9
 2) "https://github.com/evanx/hello-component"
 ```
 
-For example this service might be implemented in bash as follows:
+Let's implement this service in bash:
 ```shell
 c0pop() {
   $redis1 expire $ns:service:$serviceId 60
@@ -154,6 +154,10 @@ c0pop() {
     mkdir -p $deployDir && cd $deployDir && pwd
     hsetnx $ns:res:$id deployDir $deployDir
 ```
+where we `brpoplpush` with a `4` second timeout.
+
+Incidently, the script should exit in the event of any errors, and so should be automatically restarted. If a new service instance is going to be started by the cron every minute, then its `:service:$id` could expire every 120 seconds, so that we have at most two running at once.
+
 
 ###### git clone
 
