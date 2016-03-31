@@ -168,7 +168,6 @@ Note that in practice, rather than `brpop,` we must `brpoplpush :req :pending` e
 
 ### Further reading
 
-Component model: https://github.com/evanx/component-validator/blob/master/README.md
 
 Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
 
@@ -176,7 +175,7 @@ Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-r
 
 Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
 
-Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
+Component model: https://github.com/evanx/component-validator/blob/master/README.md
 
 
 #### Chronica 
