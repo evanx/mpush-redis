@@ -129,9 +129,11 @@ For example this might be implemented in bash as follows:
 
 ```shell
 c0pop() {
+  set -e
   $redis1 expire $ns:service:$serviceId 60
   id=`$redis brpoplpush $ns:req $ns:pending 4`
-  [ -z "$id" ] && return 1
+  [ -n "$id" ]
+  $rediscli hsetnx $ns:res:$id service $serviceId | c1grepq 1
   git=`$redis hget $ns:req:$id git`
   branch=`$redis hget $ns:req:$id branch`
   commit=`$redis hget $ns:req:$id commit`
@@ -141,10 +143,9 @@ c0pop() {
   cd $branch
   [ -n "$commit" ] && git checkout $commit
   $redis hset $ns:res:$id cloned `date +%s`
-  [ -f package.json ] && (
-    npm --silent install
+  [ -f package.json ]
+  npm --silent install &&
     $redis hset $ns:res:$id npminstalled `date +%s`
-  );
   actualCommit=`git log | head -1 | cut -d' ' -f2`
   $redis1 hsetnx $ns:res:$id actualCommit $actualCommit
   $redis1 hsetnx $ns:res:$id dir $repoDir
