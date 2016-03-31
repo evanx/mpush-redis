@@ -125,74 +125,91 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 
 This service should `git clone` and `npm install` packages according to a Redis-based request.
 
-For example this might be implemented in bash as follows:
+##### req
 
-```shell
-c0pop() {
-  set -e
-  $redis1 expire $ns:service:$serviceId 60
-  id=`$redis brpoplpush $ns:req $ns:pending 4`
-  [ -n "$id" ]
-  $rediscli hsetnx $ns:res:$id service $serviceId | c1grepq 1
-  git=`$redis hget $ns:req:$id git`
-  branch=`$redis hget $ns:req:$id branch`
-  commit=`$redis hget $ns:req:$id commit`
-  repoDir="$serviceDir/$id"
-  mkdir -p $repoDir && cd $repoDir
-  git clone $git -b $branch $branch
-  cd $branch
-  [ -n "$commit" ] && git checkout $commit
-  $redis hset $ns:res:$id cloned `date +%s`
-  [ -f package.json ]
-  npm --silent install &&
-    $redis hset $ns:res:$id npminstalled `date +%s`
-  actualCommit=`git log | head -1 | cut -d' ' -f2`
-  $redis1 hsetnx $ns:res:$id actualCommit $actualCommit
-  $redis1 hsetnx $ns:res:$id dir $repoDir
-  $redis sadd $ns:res:ids  
-  $redis lrem $ns:req:pending -1 $id
-  $redis lpush $ns:res $id
-}
-```
-where we `brpoplpush` a request `id` with hashes `:req:$id` namely:
+We `brpoplpush` a request `id` and `hget :req:$id` fields:
 - the `git` URL
 - optional `branch` otherwise defaulted to `master`
 - optional `commit` otherwise defaulted to `HEAD`
 
-The service must:
-- `git clone` the URL e.g. from Github, into a directory `.ndeploy/demo-ndeploy/$id/master`
+So the `req` hashes contain the git URL at least:
+```
+hgetall demo:ndeploy:req:9
+1) "git"
+2) "https://github.com/evanx/hello-component"
+```
+
+For example this service might be implemented in bash as follows:
+```shell
+c0pop() {
+  $redis1 expire $ns:service:$serviceId 60
+  id=`$redis brpoplpush $ns:req $ns:pending 4`
+  if [ -n "$id" ]
+  then
+    hsetnx $ns:res:$id service $serviceId
+    git=`$redis hget $ns:req:$id git`
+    branch=`$redis hget $ns:req:$id branch`
+    commit=`$redis hget $ns:req:$id commit`
+    deployDir="$serviceDir/$id"
+    mkdir -p $deployDir && cd $deployDir && pwd
+    hsetnx $ns:res:$id deployDir $deployDir
+```
+
+##### git clone
+
+where the service must:
+- `git clone` the URL e.g. from Github, into the directory `.ndeploy/demo-ndeploy/$id/master`
 - `git checkout $commit` if a commit hash is specified in the `:req:$id` hashes
-- `npm install` if a `package.json` is present in the deployment directory
-
-It sets response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request), and pushes the request `id` to the `:res` list.
 
 ```shell
-redis-cli hgetall demo:ndeploy:res:10
-1) "cloned"
-2) "1459461668"
-3) "npminstalled"
-4) "1459461669"
-5) "actualCommit"
-6) "c6a9326f46a92d1f7edc4d2a426c583ec8f168ad"
+  git clone $git -b $branch $branch
+  cd $branch
+  if [ -n "$commit" ]
+  then
+    git checkout $commit
+  fi
+  hsetnx $ns:res:$id cloned `stat -c %Z $deployDir`
+```
+where we set the `cloned` timestamp.
+
+#### npm install
+
+```shell  
+  if [ -f package.json ]
+  then
+    npm --silent install
+    hsetnx $ns:res:$id npmInstalled `stat -c %Z node_modules`
+  fi
 ```
 
 ```shell
-cat ~/.ndeploy/demo-ndeploy/10/master/index.js
+$ du -sh ~/.ndeploy/demo-ndeploy/*
+516K	/home/evans/.ndeploy/demo-ndeploy/1
+516K	/home/evans/.ndeploy/demo-ndeploy/2
+516K	/home/evans/.ndeploy/demo-ndeploy/3
 ```
 
-```javascript
-export default async function(state, props, logger, metrics, service) {
-   logger.info('hello', props);
-   return {
-      async start() {
-         logger.info('system ready');
-      },
-      async end() {
-         logger.info('goodbye');
-      }
-   };
-}
+##### res
+
+We set `:res:$id` hashes for:
+ - `deployDir` of the `git clone` et al
+ - `actualCommit` SHA according to `git log`
+
+```shell
+  actualCommit=`git log | head -1 | cut -d' ' -f2`
+  hsetnx $ns:res:$id actualCommit $actualCommit
 ```
+where we `hsetnx` response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request).
+
+Finally we pushes the request `id` to the `:res` list.
+```shell
+  $redis lpush $ns:res $id
+```
+We can now `lrem :req:pending $id`
+```shell
+  $redis lrem $ns:req:pending -1 $id
+```
+where we scan from the tail of the list.
 
 See: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
 

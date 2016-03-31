@@ -35,6 +35,14 @@ redise() {
   fi
 }
 
+redis1() {
+  redise 1 $*
+}
+
+hsetnx() {
+  redis1 hsetnx $*
+}
+
 c3hgetd() {
   defaultValue=$1
   key=$2
@@ -79,7 +87,7 @@ pwd
 
 v1popError() {
   id=$1
-  echo "ERROR pop: $* -- lpush $ns:req $id, lrem $ns:req:pending"
+  echo "ERROR pop: $*"
   $rediscli lpush $ns:req $id
   $rediscli lrem $ns:req:pending -1 $id
   exit 9
@@ -104,40 +112,47 @@ c0pop() {
   id=$pendingId
   if [ -n "$id" ]
   then
+    echo hgetall $ns:req:$id
+    $rediscli hgetall $ns:req:$id
     set -e
-    $rediscli hsetnx $ns:res:$id service $serviceId | c1grepq 1
-    git=`$rediscli hget $ns:req:$id git`
-    branch=`c3hgetd master $ns:req:$id branch`
-    commit=`$rediscli hget $ns:req:$id commit`
-    echo "$git" | grep '^http\|git@'
-    repoDir="$serviceDir/$id"
-    echo "INFO repoDir $repoDir"
-    mkdir -p $repoDir && cd $repoDir
-    git clone $git -b $branch $branch
-    cd $branch || c3abort 3 branch $branch
-    if [ -n "$commit" ]
-    then
-      echo "INFO git checkout $commit -- $git $branch"
-      git checkout $commit
-    fi
-    $rediscli hset $ns:res:$id cloned `date +%s`
-    if [ -f package.json ]
-    then
-      cat package.json
-      npm --silent install
-      $rediscli hset $ns:res:$id npminstalled `date +%s`
-    fi
-    actualCommit=`git log | head -1 | cut -d' ' -f2`
-    echo "INFO actualCommit $actualCommit"
-    $rediscli hsetnx $ns:res:$id actualCommit $actualCommit | c1grepq 1
-    $rediscli hsetnx $ns:res:$id repoDir $repoDir
-    echo; echo hgetall $ns:res:$id
-    $rediscli hgetall $ns:res:$id
+    c1popped $id
     pendingId=''
     set +e
-  else
-    sleep .2
   fi
+}
+
+c1popped() {
+  id=$1
+  git=`$rediscli hget $ns:req:$id git`
+  branch=`c3hgetd master $ns:req:$id branch`
+  commit=`$rediscli hget $ns:req:$id commit`
+  echo "$git" | grep '^http\|git@'
+  cd $serviceDir
+  ls -lht
+  deployDir="$serviceDir/$id"
+  [ ! -d $deployDir ] 
+  hsetnx $ns:res:$id deployDir $deployDir
+  echo "INFO deployDir $deployDir"
+  mkdir -p $deployDir && cd $deployDir
+  git clone $git -b $branch $branch
+  cd $branch 
+  if [ -n "$commit" ]
+  then
+    echo "INFO git checkout $commit -- $git $branch"
+    git checkout $commit
+  fi
+  hsetnx $ns:res:$id cloned `stat -c %Z $deployDir`
+  if [ -f package.json ]
+  then
+    cat package.json
+    npm --silent install
+    hsetnx $ns:res:$id npmInstalled `stat -c %Z node_modules`
+  fi
+  actualCommit=`git log | head -1 | cut -d' ' -f2`
+  echo "INFO actualCommit $actualCommit"
+  hsetnx $ns:res:$id actualCommit $actualCommit
+  echo; echo hgetall $ns:res:$id
+  $rediscli hgetall $ns:res:$id
 }
 
 c0tpush() {
@@ -148,14 +163,13 @@ c0tpush() {
   $rediscli lpush $ns:req $id
 }
 
+c0clear13() {
+  redis-cli -n 13 keys "$ns:*" | xargs -n1 redis-cli -n 13 del
+  rm -rf $HOME/.ndeploy/demo-ndeploy
+}
+
 c0test() {
-  #redis-cli -n 13 keys "$ns:*" | xargs -n1 redis-cli -n 13 del
-  #rm -rf $HOME/.ndeploy/demo-ndeploy
-  c0tpush &
-  c0pop
-  c0pop
-  c0pop
-  c0pop
+  c0tpush & c0pop
 }
 
 c0test
