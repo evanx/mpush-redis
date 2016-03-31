@@ -159,7 +159,34 @@ It will `git clone` the repo, `git checkout $commit` and `npm install.`
 
 It sets response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request), and pushes the request `id` to the `:res` list.
 
+```shell
+redis-cli hgetall demo:ndeploy:res:10
+1) "cloned"
+2) "1459461668"
+3) "npminstalled"
+4) "1459461669"
+5) "actualCommit"
+6) "c6a9326f46a92d1f7edc4d2a426c583ec8f168ad"
+7) "dir"
+8) "~/.ndeploy/demo-ndeploy/10"
+```
 
+```shell
+cat ~/.ndeploy/demo-ndeploy/10/master/index.js
+```
+
+```javascript
+export default async function(state, props, logger, metrics, service) {
+   logger.info('hello', props);
+   return {
+      async start() {
+         logger.info('system ready');
+      },
+      async end() {
+         logger.info('goodbye');
+      }
+   };
+}```
 
 #### rquery
 
