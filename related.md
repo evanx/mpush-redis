@@ -64,7 +64,7 @@ Typically these are microservices that interact "internally" via Redis, and exte
 
 Incidently, similar services are also planned which use NATS for high-performance fire-and-forget messaging.
 
-However, we use Nginx to handle high-performance HTTP caching and switching, and Node/Redis to handle application programming. Microservices that must handle say 10k messages per second, should be probably be developed in Go, and be using NATS.
+However, we typically prefer to use Nginx to handle high-performance HTTP caching and switching, and Node/Redis to handle application programming. Microservices that must handle say 10k messages per second, should be probably be developed in Go, and be using NATS.
 
 Clearly "Universal JavaScript" is compelling for web development, and especially now with:
 - ES6 - arrow functions, et al.
