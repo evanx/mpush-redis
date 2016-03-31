@@ -70,9 +70,9 @@ Clearly "Universal JavaScript" is compelling for web development, and especially
 - ES6 - e.g. arrow functions with sane `this`
 - ES2016 - async/await sugaring of ES6 promises/generators
 
-The new features of JavaScript, enabled for immediate use on all platforms via Babel, are too numerous to mention, and the annual cadence of its standardisation, is rather exciting. 
+The new features of JavaScript, enabled for immediate use on all platforms via Babel, are too numerous to mention, and the annual cadence of its standardisation, is rather exciting.
 
-For processes which individually handle a hundred or less requests per second, and are scaled horizontally, I believe Node is a great choice. Node is highly productive, and performant enough for most applications. Also enterprise and server-side development tends to follow web development.
+For processes which individually handle a hundred or less requests per second, and are scaled horizontally, I believe Node is a great choice. Node is highly productive, and performant enough for most applications. Also enterprise and server-side development tends to follow web development trends.
 
 I believe that stateless microservices, Redis, Node and ES2016 are complementary technologies:
 - microservices are simple to write
