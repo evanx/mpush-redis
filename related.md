@@ -205,14 +205,14 @@ Let's manually check the `package.json` for this deployment:
 ##### res
 
 We set `:res:$id` hashes for:
- - `deployDir` of the `git clone` et al
- - `actualCommit` SHA according to `git log`
+ - the `deployDir` of the `git clone` et al
+ - the `actualCommit` SHA according to `git log`
 
 ```shell
   actualCommit=`git log | head -1 | cut -d' ' -f2`
   hsetnx $ns:res:$id actualCommit $actualCommit
 ```
-where we `hsetnx` response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request).
+where we `hsetnx` response hashes e.g. `demo:ndeploy:res:9` (matching the `req:9` request).
 
 Finally we pushes the request `id` to the `:res` list.
 ```shell
