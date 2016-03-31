@@ -54,7 +54,7 @@ Also, for the fun of building a distributed web server:
 - hrouter - route an HTTP message by matching its URL (using regex)
 - hrender - render a React template
 - rquery - retrieve data from Redis
-- rdeploy - NPM module installation triggered by Redis-based messaging
+- ndeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
 Typically these are microservices that interact "internally" via Redis, and externally via HTTP, e.g. the `hgateway` service includes an ExpressJS webserver.
@@ -119,6 +119,46 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 - load this asset from the filesystem into Redis, with flexible expiry
 - enable programmable expiry via a configurable Node module path
 - optionally gzip the content in Redis
+
+
+#### ndeploy
+
+This service should `git clone` and `npm install` packages according to a Redis-based request.
+
+For example this might be implemented in bash as follows:
+
+```shell
+c0pop() {
+  $redis expire $ns:service:$serviceId 60 | c1grepq 1
+  id=`$redis brpoplpush $ns:req $ns:pending 4`
+  [ -z "$id" ] && return 1
+  git=`$redis hget $ns:req:$id git`
+  branch=`$redis hget $ns:req:$id branch`
+  commit=`$redis hget $ns:req:$id commit`
+  repoDir="$serviceDir/$id"
+  mkdir -p $repoDir && cd $repoDir
+  git clone $git -b $branch $branch
+  cd $branch
+  [ -n "$commit" ] && git checkout $commit
+  $redis hset $ns:res:$id cloned `date +%s`
+  [ -f package.json ] && (
+    npm --silent install
+    $redis hset $ns:res:$id npminstalled `date +%s`
+  );
+  actualCommit=`git log | head -1 | cut -d' ' -f2`
+  $redis hsetnx $ns:res:$id actualCommit $actualCommit
+  $redis hsetnx $ns:res:$id dir $repoDir
+  $redis sadd $ns:res:ids  
+  $redis lrem $ns:req:pending -1 $id
+  $redis lpush $ns:res $id
+}
+```
+where we `brpoplpush` a request with a `git` URL, and option `branch` and `commit.`
+
+It will `git clone` the repo, `git checkout $commit` and `npm install.`
+
+It sets response hashes e.g. `demo:ndeploy:res:10` (matching the `req:10` request), and pushes the request `id` to the `:res` list.
+
 
 
 #### rquery
