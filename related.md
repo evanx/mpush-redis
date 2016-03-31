@@ -188,6 +188,9 @@ export default async function(state, props, logger, metrics, service) {
    };
 }```
 
+See: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
+
+
 #### rquery
 
 I'm imagining a simple `rquery` service will accept an array of Redis commands, and return the requested data.
