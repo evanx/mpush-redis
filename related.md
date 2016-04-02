@@ -123,9 +123,7 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 
 #### ndeploy
 
-This service should `git clone` and `npm install` packages according to a Redis-based request.
-
-Read: https://github.com/evanx/mpush-redis/blob/master/ndeployBash.md
+This service should `git clone` and `npm install` packages according to a Redis-based request: https://github.com/evanx/ndeploy-bash
 
 
 ###### req
@@ -174,7 +172,7 @@ We can inspect the response metadata as follows:
 8) "c6a9326f46a92d1f7edc4d2a426c583ec8f168ad"
 ```
 
-Code: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
+Code: https://github.com/evanx/ndeploy-bash/blob/master/scripts/ndeploy.sh
 
 
 ### Further reading
