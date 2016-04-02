@@ -127,6 +127,7 @@ This service should `git clone` and `npm install` packages according to a Redis-
 
 Read: https://github.com/evanx/mpush-redis/blob/master/ndeployBash.md
 
+
 ###### req
 
 We `brpoplpush` a request `id` and `hget :req:$id` fields:
@@ -141,28 +142,27 @@ hgetall demo:ndeploy:req:9
 2) "https://github.com/evanx/hello-component"
 ```
 
-For example we implement this service in bash:
-```shell
-c0pop() {
-  $redis1 expire $ns:service:$serviceId 120
-  id=`$redis brpoplpush $ns:req $ns:pending 4`
-  if [ -n "$id" ]
-  then
-    hsetnx $ns:res:$id service $serviceId
-    git=`$redis hget $ns:req:$id git`
-    branch=`$redis hget $ns:req:$id branch`
-    commit=`$redis hget $ns:req:$id commit`
-    deployDir="$serviceDir/$id"
-    mkdir -p $deployDir && cd $deployDir && pwd
-    hsetnx $ns:res:$id deployDir $deployDir
+We run a test service instance in the background that will pop a single request and then exit
 ```
-where we `brpoplpush` with a `4` second timeout.
+$ ndeploy pop 60 &
+```
+where the pop timeout is `60` seconds, after which it will error.
 
 Incidently, the script should exit in the event of any errors, and so should be automatically restarted.
 
 For example if a new service instance is going to be started by the cron every minute, then its `:service:$id` could expire every 120 seconds, so that we have at most two running at once.
 
+This deployment is commanded as follows:
+```
+$ ndeploy deploy https://github.com/evanx/hello-component | tail -1
+```
+This should echo the directory with the successful deployment:
+```
+/home/evans/.ndeploy/demo-ndeploy/8
+```
+
 Code: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
+
 
 ### Further reading
 
