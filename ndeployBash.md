@@ -26,7 +26,7 @@ set -u -e # exit on error, including undefined parameters
 c1pop() {
   popTimeout=$1
   redis1 expire $ns:service:$serviceId 120
-  id=`$redis brpoplpush $ns:req $ns:pending $popTimeout`
+  id=`brpoplpush $ns:req $ns:pending $popTimeout`
   if [ -z "$id" ]
   then
     >&1 echo "ERROR $id timeout"
@@ -55,10 +55,10 @@ Otherwise the popped id is handled as follows.
 c1popped() {   
   id=$1
   hsetnx $ns:res:$id service $serviceId
-  git=`$redis hget $ns:req:$id git`
-  branch=`$redis hget $ns:req:$id branch`
-  commit=`$redis hget $ns:req:$id commit`
-  tag=`$redis hget $ns:req:$id tag`
+  git=`hget $ns:req:$id git`
+  branch=`hget $ns:req:$id branch`
+  commit=`hget $ns:req:$id commit`
+  tag=`hget $ns:req:$id tag`
   deployDir="$serviceDir/$id"
   mkdir -p $deployDir && cd $deployDir && pwd
   hsetnx $ns:res:$id deployDir $deployDir
