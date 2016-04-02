@@ -161,6 +161,19 @@ This should echo the directory with the successful deployment:
 /home/evans/.ndeploy/demo-ndeploy/8
 ```
 
+We can inspect the response metadata as follows:
+```
+> hgetall demo:ndeploy:res:8
+1) "deployDir"
+2) "/home/evans/.ndeploy/demo-ndeploy/1"
+3) "cloned"
+4) "1459607390"
+5) "npmInstalled"
+6) "1459607395"
+7) "actualCommit"
+8) "c6a9326f46a92d1f7edc4d2a426c583ec8f168ad"
+```
+
 Code: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
 
 
