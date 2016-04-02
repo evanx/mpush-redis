@@ -1,22 +1,68 @@
 
-set -u
+set -u -e
 
-rediscli='redis-cli -n 13'
+# context
+
 ns='demo:ndeploy'
+rediscli='redis-cli -n 13'
 
-v3abort() {
-  exitCode=$1
-  shift
-  name=$1
-  value=$2
-  echo "WARN abort: $*"
-  exit $exitCode
+if ! set | grep '^ns='
+then
+  ns='demo:ndeploy'
+fi
+
+if ! set | grep '^rediscli='
+then
+  rediscli='redis-cli -n 13'
+fi
+
+
+# logging
+
+debug() {
+  >&2 echo "DEBUG $ns $serviceId - $*"
 }
 
-v0abort() {
-  message="$*"
-  echo "WARN abort: $message"
+info() {
+  >&2 echo "INFO $ns $serviceId - $*"
+}
+
+warn() {
+  >&2 echo "WARN $ns $serviceId - $*"
+}
+
+
+# lifecycle
+
+abort() {
+  echo "WARN abort: $*"
   exit 1
+}
+
+
+# utils
+
+grepq() {
+  [ $# -eq 1 ]
+  grep -q "^${1}$"
+}
+
+grepe() {
+  [ $# -eq 1 ]
+  expect="$1"
+  if ! cat | grep -q "$expect"
+  then
+    echo "WARN $expect"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# redis utils
+
+redis() {
+  $rediscli $*
 }
 
 redise() {
@@ -27,24 +73,100 @@ redise() {
   then
     >&2 echo "WARN $rcmd"
     return 1
-  elif $rediscli $rcmd | grep -v "^${expect}$"
+  fi
+  reply=`$rediscli $rcmd`
+  if echo "$reply" | grep -v "^${expect}$"
   then
-    >&2 echo "WARN $rcmd"
+    >&2 echo "WARN $rcmd - reply $reply - not $expect"
     return 2
   else
     return 0
   fi
 }
 
+redis0() {
+  [ $# -gt 1 ]
+  redise 0 $*
+}
+
 redis1() {
+  [ $# -gt 1 ]
   redise 1 $*
 }
 
-hsetnx() {
-  redis1 hsetnx $*
+expire() {
+  [ $# -eq 2 ]
+  info "expire $*"
+  redis1 expire $*
 }
 
-c3hgetd() {
+exists() {
+  [ $# -eq 1 ]
+  redis1 exists $1
+}
+
+nexists() {
+  [ $# -eq 1 ]
+  redis0 exists $1
+}
+
+hgetall() {
+  [ $# -eq 1 ]
+  key=$1
+  echo "$key" | grep -q "^$ns:\w[:a-z0-9]*$"
+  >&2 echo "DEBUG hgetall $key"
+  >&2 $rediscli hgetall $key
+}
+
+incr() {
+  [ $# -eq 1 ]
+  key=$1
+  echo "$key" | grep -q "^$ns:\w[:a-z0-9]*$"
+  seq=`$rediscli incr $key`
+  echo "$seq" | grep '^[1-9][0-9]*$'
+}
+
+hsetnx() {
+  [ $# -eq 3 ]
+  $rediscli hsetnx $* | grep -q '^1$'
+}
+
+lpush() {
+  [ $# -eq 2 ]
+  reply=`$rediscli lpush $*`
+  debug "lpush $* - $reply"
+  echo "$reply" | -q grep '^[1-9][0-9]*$'
+}
+
+brpoplpush() {
+  [ $# -eq 3 ]
+  popId=`$rediscli brpoplpush $*`
+  debug "brpoplpush $* - $popId"
+  echo $popId | grep '^[1-9][0-9]*$'
+}
+
+brpop() {
+  [ $# -eq 2 ]
+  debug "$rediscli brpop $*"
+  popId=`$rediscli brpop $* | tail -1`
+  debug "brpop $* - $popId"
+  echo $popId | grep '^[1-9][0-9]*$'
+}
+
+lrem() {
+  [ $# -eq 3 ]
+  $rediscli lrem $* | grep -q '^[1-9][0-9]*$'
+}
+
+llen() {
+  [ $# -eq 1 ]
+  llen=`$rediscli llen $*`
+  debug "llen $* - $llen"
+  echo $llen | grep '^[1-9][0-9]*$'
+}
+
+hgetd() {
+  [ $# -eq 3 ]
   defaultValue=$1
   key=$2
   field=$3
@@ -57,34 +179,26 @@ c3hgetd() {
   fi
 }
 
-grepq() {
-  grep -q "^${1}$"
-}
-
-grepe() {
-  expect="$1"
-  if ! cat | grep -q "$expect"
-  then
-    echo "WARN $expect"
-    return 0
-  else
-    return 1
-  fi
-}
-
-c1id() {
+nsincr() {
+  [ $# -eq 1 ]
   name=$1
-  >&2 echo $rediscli incr $ns:$name:id
-  id=`$rediscli incr $ns:$name:id`
-  redise 0 exists $ns:$name:$id || v0abort "exists $ns:$name:$id"
+  id=`incr $ns:$name:id`
+  redis0 exists $ns:$name:$id
   echo $id
 }
 
-serviceId=`c1id service`
+# init service, to expire after 120 seconds
+
+serviceId=`nsincr service | tail -1`
+redis0 exists $ns:service:$serviceId
+hsetnx $ns:service:$serviceId pid $$
+hsetnx $ns:service:$serviceId started `$rediscli time | head -1`
+expire $ns:service:$serviceId 120
+hgetall $ns:service:$serviceId
 serviceDir=$HOME/.ndeploy/`echo $ns | tr ':' '-'`
-echo "INFO service: serviceId $serviceId, ns $ns, serviceDir $serviceDir"
+info "service: $serviceId $ns $serviceDir"
 mkdir -p $serviceDir && cd $serviceDir || exit 1
-pwd
+info 'pwd' `pwd`
 
 v1popError() {
   id=$1
@@ -106,37 +220,39 @@ c0exit() {
 
 trap c0exit exit
 
-c0pop() {
-  $rediscli expire $ns:service:$serviceId 60 | grepq 1
-  rcmd="brpoplpush $ns:req $ns:pending 2"
-  pendingId=`$rediscli $rcmd`
-  id=$pendingId
-  if [ -n "$id" ]
-  then
-    echo hgetall $ns:req:$id
-    $rediscli hgetall $ns:req:$id
-    set -e
-    c1popped $id
-    pendingId=''
-    set +e
-  fi
+c1pop() {
+  popTimeout=$1
+  expire $ns:service:$serviceId $popTimeout
+  rcmd="brpoplpush $ns:req $ns:pending $popTimeout"
+  id=`$rediscli $rcmd | grep '^[1-9][0-9]*$'`
+  debug "popped $id"
+  [ -n $id ]
+  pendingId=$1
+  expire $ns:req:$id 10
+  hgetall $ns:req:$id
+  c1popped $id
+  redis1 sadd $ns:res:ids $id
+  redis1 persist $ns:res:$id
+  hgetall $ns:res:$id
+  lpush $ns:res $id
+  pendingId=''
 }
 
 c1popped() {
   id=$1
-  git=`$rediscli hget $ns:req:$id git`
-  branch=`c3hgetd master $ns:req:$id branch`
+  git=`$rediscli hget $ns:req:$id git | grep '^http\|^git@'`
+  branch=`hgetd master $ns:req:$id branch`
   commit=`$rediscli hget $ns:req:$id commit`
-  echo "$git" | grep '^http\|git@'
   cd $serviceDir
   ls -lht
   deployDir="$serviceDir/$id"
-  [ ! -d $deployDir ] 
+  [ ! -d $deployDir ]
   hsetnx $ns:res:$id deployDir $deployDir
+  expire $ns:res:$id 600
   echo "INFO deployDir $deployDir"
   mkdir -p $deployDir && cd $deployDir
   git clone $git -b $branch $branch
-  cd $branch 
+  cd $branch
   if [ -n "$commit" ]
   then
     echo "INFO git checkout $commit -- $git $branch"
@@ -152,16 +268,47 @@ c1popped() {
   actualCommit=`git log | head -1 | cut -d' ' -f2`
   echo "INFO actualCommit $actualCommit"
   hsetnx $ns:res:$id actualCommit $actualCommit
-  echo; echo hgetall $ns:res:$id
-  $rediscli hgetall $ns:res:$id
+  deployDir=`$rediscli hget $ns:res:$id deployDir`
+  2>&1 echo "OK $id $deployDir"
+  echo $deployDir | grep '/'
 }
 
-c0tpush() {
-  sleep .5
-  id=`$rediscli incr $ns:req:id`
-  $rediscli exists $ns:req:$id | grepq 0
-  $rediscli hset $ns:req:$id git https://github.com/evanx/hello-component
-  $rediscli lpush $ns:req $id
+
+# test
+
+c1req() {
+  gitUrl="$1"
+  id=`incr $ns:req:id`
+  hsetnx $ns:req:$id git $gitUrl
+  lpush $ns:req $id
+  echo "OK $id $gitUrl"
+  echo $id
+}
+
+c2brpop() {
+  reqId=$1
+  popTimeout=$2
+  resId=`brpop $ns:res $popTimeout`
+  if [ "$reqId" != $id ]
+  then
+    >&2 echo "mismatched id: $resId"
+    redis-cli lpush $ns:res $resId
+    return 1
+  fi
+  echo "$reqId" | grep '^[1-9][0-9]*$'
+  $rediscli hget $ns:res:$id deployDir | grep '/'
+}
+
+c2deploy() {
+  gitUrl=$1
+  popTimeout=$2
+  id=`c1req $gitUrl | tail -1`
+  c2brpop $id $popTimeout
+}
+
+c0tdeploy() {
+  set -e
+  c2deploy https://github.com/evanx/hello-component 60
 }
 
 c0clear13() {
@@ -170,7 +317,19 @@ c0clear13() {
 }
 
 c0test() {
-  c0tpush & c0pop
+  c0tpush & c1pop 10
 }
 
-c0test
+
+# command
+
+info "rediscli $rediscli"
+info "args $@"
+
+command=test
+if [ $# -ge 1 ]
+then
+  command=$1
+  shift
+  c$#$command $@
+fi

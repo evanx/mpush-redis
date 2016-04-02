@@ -6,12 +6,11 @@
 
 This service should `git clone` and `npm install` packages according to a Redis-based request.
 
-###### req
-
 We `brpoplpush` a request `id` and `hget :req:$id` fields:
-- the `git` URL
-- optional `branch` otherwise defaulted to `master`
-- optional `commit` otherwise defaulted to `HEAD`
+- mandatory `git` URL
+- optional `branch` - otherwise defaulted to `master`
+- optional `commit` SHA - otherwise defaulted to `HEAD`
+- optional `tag`
 
 So the `req` hashes contain the git URL at least:
 ```
@@ -22,25 +21,102 @@ hgetall demo:ndeploy:req:9
 
 Let's implement this service in bash:
 ```shell
-c0pop() {
-  $redis1 expire $ns:service:$serviceId 120
-  id=`$redis brpoplpush $ns:req $ns:pending 4`
-  if [ -n "$id" ]
+set -u -e # exit on error, including undefined parameters
+
+c1pop() {
+  popTimeout=$1
+  redis1 expire $ns:service:$serviceId 120
+  id=`$redis brpoplpush $ns:req $ns:pending $popTimeout`
+  if [ -z "$id" ]
   then
-    hsetnx $ns:res:$id service $serviceId
-    git=`$redis hget $ns:req:$id git`
-    branch=`$redis hget $ns:req:$id branch`
-    commit=`$redis hget $ns:req:$id commit`
-    deployDir="$serviceDir/$id"
-    mkdir -p $deployDir && cd $deployDir && pwd
-    hsetnx $ns:res:$id deployDir $deployDir
+    >&1 echo "ERROR $id timeout"
+    return 1
+  then
+    set -e
+    c1popped $id
+    set +e
+  fi
+}
 ```
-where we `brpoplpush` with a `4` second timeout.
+where we `brpoplpush` with a `popTimeout` (in seconds).
 
-Incidently, the script should exit in the event of any errors, and so should be automatically restarted.
+Note that we choose to expire the service instance in `120` seconds. After that, the subsequent call to `pop` will error, and the script will exit.  
 
-For example if a new service instance is going to be started by the cron every minute, then its `:service:$id` could expire every 120 seconds, so that we have at most two running at once.
+###### Service expiry
 
+When the `service` key has expired, and the `expire` command will reply with `0.` Our `redis1` utility function expects a reply of `1` and otherwise errors.
+
+Since the script will exit in the event of any errors, it should be automatically restarted. For example if a new service instance is going to be started by the cron every minute, then its `:service:$id` could expire every 120 seconds, so that we have at most two running at once.
+
+###### Request handling
+
+Otherwise the popped id is handled as follows.
+```shell
+c1popped() {   
+  id=$1
+  hsetnx $ns:res:$id service $serviceId
+  git=`$redis hget $ns:req:$id git`
+  branch=`$redis hget $ns:req:$id branch`
+  commit=`$redis hget $ns:req:$id commit`
+  tag=`$redis hget $ns:req:$id tag`
+  deployDir="$serviceDir/$id"
+  mkdir -p $deployDir && cd $deployDir && pwd
+  hsetnx $ns:res:$id deployDir $deployDir
+  c5deploy $git "$branch" "$commit" "$tag" $deployDir
+```
+where `c5deploy` will `git clone` and `npm install` the `deployDir.`
+
+For demonstration, we manually try a sample deploy:
+```shell
+c1deploy() {
+  gitUrl=$1
+  id=`c1req | tail -1`
+  c1brpop $id
+}
+```
+
+We `incr` and `lpush` the request id as follows:
+```shell
+c1req() {
+  gitUrl="$1"
+  id=`redis-cli incr $ns:req:id`
+  redis-cli hsetnx $ns:req:$id git $gitUrl
+  redis-cli lpush $ns:req $id
+  echo $id
+}
+```
+where we set the Git URL via request hashes.
+
+The following function will match the response:
+```shell
+c1brpop() {
+  reqId="$1"
+  resId=`redis-cli brpop $ns:res`
+  if [ "$reqId" != $id ]
+  then
+    >&2 echo "mismatched id: $resId"
+    redis-cli lpush $ns:res $resId
+    return 1
+  fi
+  redis-cli hget $ns:req:$id deployDir | grep '/'
+}
+```
+where this will echo the `deployDir` and otherwise lpush the id back into the queue, and error out.
+
+We run a test service instance in the background that will pop a single request and then exit
+```
+$ ndeploy pop 60 &
+```
+where the pop timeout is `60` seconds, after which it will error.
+
+This is commanded as follows:
+```
+$ ndeploy deploy https://github.com/evanx/hello-component | tail -1
+```
+This will echo the directory with the successful deployment:
+```
+/home/evans/.ndeploy/demo-ndeploy/8
+```
 
 ###### git clone
 
@@ -103,69 +179,18 @@ where we `hsetnx` response hashes e.g. `demo:ndeploy:res:9` (matching the `req:9
 
 Finally we pushes the request `id` to the `:res` list.
 ```shell
-  $redis lpush $ns:res $id
+  lpush $ns:res $id
 ```
 We can now `lrem :req:pending $id`
 ```shell
-  $redis lrem $ns:req:pending -1 $id
+  lrem $ns:req:pending -1 $id
 ```
 where we scan from the tail of the list.
 
 
-##### Further reading
+##### Resources
 
 See: https://github.com/evanx/mpush-redis/blob/master/scripts/ndeploy.sh
-
-
-#### rquery
-
-I'm imagining a simple `rquery` service will accept an array of Redis commands, and return the requested data.
-
-```shell
-redis-cli get rquery:clihelp
-Welcome to @rquery from service 1
-For request message in YAML format, use #rquery:req:yaml  
-```
-where we can interact with the service via the Redis CLI e.g. for demo purposes.
-
-
-##### News/blog article
-
-For example, a news publishing application might query for an article title and section:
-```shell
-redis-cli lpush rquery:req:yaml "
-  meta:
-    id: 12345
-  paramaters:
-    articleId: 7654321
-  commands:
-  - command: hget article:$articleId section
-    save: sectionId
-  - name: label
-    command: hget section:$section label
-"
-```
-
-where this might return the following results:
-```
-redis-cli brpop rquery:res
-```
-```json
-{
-   "meta": {
-     "id": 12345
-  },
-   "commands": {
-      "label": "News"
-   },
-   "saved": {
-      "sectionId": "news"
-   }
-}   
-```
-where this response is `popped` from a Redis "response" queue. We note that the `meta.id` matches our request.
-
-Note that in practice, rather than `brpop,` we must `brpoplpush :req :pending` e.g. so that the message can be recovered from `:pending` e.g. in the event that some new version of the service instance is crashing after popping the message. Incidently, in this scenario, we must detect the faulty instance, deregister it for and schedule its shutdown e.g. `del` its service key.
 
 
 ### Further reading
