@@ -170,23 +170,4 @@ Note that in practice, rather than `brpop,` we must `brpoplpush :req :pending` e
 
 ### Further reading
 
-
-Service lifecycle management: https://github.com/evanx/mpush-redis/blob/master/service.md
-
-Message lifecycle management, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/message.md
-
-Metrics, for timeouts etc: https://github.com/evanx/mpush-redis/blob/master/metrics.md
-
-Component model: https://github.com/evanx/component-validator/blob/master/README.md
-
-
-#### Chronica
-
-My "monitoring" project has similar component model: https://github.com/evanx/chronica
-
-Especially see its `ComponentFactory` documentation: https://github.com/evanx/chronica/blob/master/lib/ComponentFactory.md
-
-
-#### Redex
-
-While this repo presents a standalone utility for a specific requirement, it is conceptually related to my "Redex" framework for Redis-based messaging: https://github.com/evanx/redex
+Related projects and further plans: https://github.com/evanx/mpush-redis/blob/master/related.md
