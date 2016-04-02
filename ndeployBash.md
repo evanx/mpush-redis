@@ -79,9 +79,9 @@ We `incr` and `lpush` the request id as follows:
 ```shell
 c1req() {
   gitUrl="$1"
-  id=`redis-cli incr $ns:req:id`
-  redis-cli hsetnx $ns:req:$id git $gitUrl
-  redis-cli lpush $ns:req $id
+  id=`nsincr $ns:req:id`
+  hsetnx $ns:req:$id git $gitUrl
+  lpush $ns:req $id
   echo $id
 }
 ```
@@ -91,14 +91,14 @@ The following function will match the response:
 ```shell
 c1brpop() {
   reqId="$1"
-  resId=`redis-cli brpop $ns:res`
+  resId=`brpop $ns:res`
   if [ "$reqId" != $id ]
   then
     >&2 echo "mismatched id: $resId"
-    redis-cli lpush $ns:res $resId
+    lpush $ns:res $resId
     return 1
   fi
-  redis-cli hget $ns:req:$id deployDir | grep '/'
+  hget $ns:req:$id deployDir | grep '/'
 }
 ```
 where this will echo the `deployDir` and otherwise lpush the id back into the queue, and error out.
