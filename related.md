@@ -128,10 +128,11 @@ This service should `git clone` and `npm install` packages according to a Redis-
 
 ###### req
 
-We `brpoplpush` a request `id` and `hget :req:$id` fields:
+In order accept the next request, we `brpoplpush` a request `id` and `hget` the further details:
 - the `git` URL
 - optional `branch` otherwise defaulted to `master`
 - optional `commit` otherwise defaulted to `HEAD`
+- optional tag
 
 So the `req` hashes contain the git URL at least:
 ```
