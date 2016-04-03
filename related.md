@@ -94,7 +94,7 @@ I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach
 
 #### hgateway
 
-This implements a "web server", i.e. accepts incoming HTTP requests e.g. via ExpressJS i.e. via TCP/IP socket. However, its purpose however is to merely to publish these into a Redis queue for further processing by other microservices. Those services will accept HTTP-request messages via a Redis queue, rather than a TCP/IP socket.
+This implements a "web server", i.e. accepts incoming HTTP requests e.g. via ExpressJS i.e. via TCP/IP socket. However, its purpose is merely to publish these into a Redis queue for further processing by other microservices. Those services will accept HTTP-request messages via a Redis queue, rather than a TCP/IP socket.
 
 `hgateway` must:
 - discover its configuration, including the HTTP port, via Redis hashes.
