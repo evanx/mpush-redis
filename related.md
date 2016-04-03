@@ -123,33 +123,18 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 
 #### ndeploy
 
-This service should `git clone` and `npm install` packages according to a Redis-based request: https://github.com/evanx/ndeploy-bash
+This service will `git clone` and `npm install` packages according to a Redis-based request.
 
+It has been implemented in bash: https://github.com/evanx/ndeploy-bash
 
-In order accept the next request, we `brpoplpush` a request `id` and `hget` the further details:
-- the `git` URL
-- optional `branch` otherwise defaulted to `master`
-- optional `commit` otherwise defaulted to `HEAD`
-- optional tag
-
-So the `req` hashes contain the git URL at least:
+The request hashes contain the git URL at least:
 ```
 hgetall demo:ndeploy:req:8
 1) "git"
 2) "https://github.com/evanx/hello-component"
 ```
 
-We run a test service instance in the background that will pop a single request and then exit
-```
-$ ndeploy pop 60 &
-```
-where the pop timeout is `60` seconds, after which it will error.
-
-Incidently, the script should exit in the event of any errors, and so should be automatically restarted.
-
-For example if a new service instance is going to be started by the cron every minute, then its `:service:$id` could expire every 120 seconds, so that we have at most two running at once.
-
-This deployment is commanded as follows:
+It is commanded as follows:
 ```
 $ ndeploy deploy https://github.com/evanx/hello-component | tail -1
 ```
