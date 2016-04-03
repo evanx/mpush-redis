@@ -126,8 +126,6 @@ Its purpose is to enable a "static webserver" e.g. for serving assets.
 This service should `git clone` and `npm install` packages according to a Redis-based request: https://github.com/evanx/ndeploy-bash
 
 
-##### req
-
 In order accept the next request, we `brpoplpush` a request `id` and `hget` the further details:
 - the `git` URL
 - optional `branch` otherwise defaulted to `master`
