@@ -136,7 +136,7 @@ In order accept the next request, we `brpoplpush` a request `id` and `hget` the 
 
 So the `req` hashes contain the git URL at least:
 ```
-hgetall demo:ndeploy:req:9
+hgetall demo:ndeploy:req:8
 1) "git"
 2) "https://github.com/evanx/hello-component"
 ```
