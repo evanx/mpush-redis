@@ -31,13 +31,11 @@ It might make more sense to combine the various services e.g. `mpush` vs `lpush`
 
 However, the idea of "immutable microservices" appeals to me.
 
-This effort seems to have become an exploratory re-implementation of my Redex framework. However it was really prompted by a production need for `mpush,` and a belief in the practicality of independently-deployable microservices.
+This effort seems to have become an exploratory re-implementation of my Redex framework. However it was really prompted by a production need for `mpush` (only) and a belief in the practicality of independently-deployable microservices.
 
 Ideally speaking:
-- Generally-useful microservices should be feature-complete.
-- Generally-useful modules should be in their own repo.
-
-This work will surely prompt a refactoring of Redex, say for version 0.2, and some services will use Redex 0.2, as a git submodule.
+- Generally useful microservices should be essentially feature complete.
+- Generally useful modules should be in their own repo.
 
 
 #### Mpush "suite"
@@ -50,14 +48,18 @@ The over-arching goal is to implement many such microservices for common integra
 
 Also, for the fun of building a distributed web server:
 - hfiler - file server for serving static assets i.e. a "static webserver"
-- hgateway - import an HTTP request into a Redis queue for subsequent routing and processing
+- hbridge - import an HTTP request into a Redis queue for subsequent routing and processing
 - hrouter - route an HTTP message by matching its URL (using regex)
 - hrender - render a React template
 - rquery - retrieve data from Redis
 - ndeploy - NPM module installation triggered by Redis-based messaging
 - rcontrol - service "orchestration" e.g. control and monitoring, triggered by Redis-based messaging
 
-Typically these are microservices that interact "internally" via Redis, and externally via HTTP, e.g. the `hgateway` service includes an ExpressJS webserver.
+Typically these are microservices that interact "internally" via Redis, and externally via HTTP, e.g. the `hbridge` service includes an ExpressJS webserver.
+
+Recent efforts:
+- ndeploy - https://github.com/evanx/ndeploy-bash 
+- rquery - https://github.com/evanx/rquery
 
 
 #### Technology choices
@@ -92,18 +94,18 @@ While generally-speaking I favour "active" monitoring e.g. HTTP/JSON pull, I'm c
 I don't argue that using nginx, Kubernetes, Prometheus etc, is the sane approach. Nevertheless, building a demo as described would be a fun R&D experience, with various potential positive outcomes.
 
 
-#### hgateway
+#### hbridge
 
 This implements a "web server", i.e. accepts incoming HTTP requests e.g. via ExpressJS i.e. via TCP/IP socket. However, its purpose is merely to publish these into a Redis queue for further processing by other microservices. Those services will accept HTTP-request messages via a Redis queue, rather than a TCP/IP socket.
 
-`hgateway` must:
+`hbridge` must:
 - discover its configuration, including the HTTP port, via Redis hashes.
 - start webserver on the configured port i.e. `listen(PORT)` for incoming HTTP requests.
 - implement a request handler e.g. invoked by ExpressJS with `(req, res)`
 - schedule a timeout handler e.g. a closure with access to `res`
 - construct an HTTP request message i.e. including the URL, HTTP headers and "body content."
-- push this "immutable" message into a Redis list e.g. `hgateway:req`
-- `brpoplpush` a response message from a Redis list e.g. `hgateway:res`
+- push this "immutable" message into a Redis list e.g. `hbridge:req`
+- `brpoplpush` a response message from a Redis list e.g. `hbridge:res`
 - cancel the timeout handler
 - respond to the original HTTP request via ExpressJS
 
